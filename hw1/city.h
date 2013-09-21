@@ -48,7 +48,7 @@ class City {
       bool isHub() {
          return _name[0] == '*';
       }
- 
+
       int distanceTo( City* other ) {
          return 4 * sqrt( pow( _x - other->getX(), 2 ) + pow( _y - other->getY(), 2 ) );
       }
@@ -57,6 +57,19 @@ class City {
          int takeOffLanding = 20;
          float airSpeedMph = 450.0f;
          return ( distanceTo( other ) / airSpeedMph ) * 60 + takeOffLanding;
+      }
+
+      int terminalWaitInMitues( City* other ) {
+         int waitHours = 3;
+         if ( isHub() ) {
+            waitHours--;
+         }
+
+         if ( other->isHub() ) {
+            waitHours--;
+         }
+
+         return waitHours * 60;
       }
 
       void addConnection( int cost, City* city ) {

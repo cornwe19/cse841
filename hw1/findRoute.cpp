@@ -2,9 +2,23 @@
 #include <fstream>
 #include <sstream>
 #include "city.h"
-#include <vector>;
+#include <vector>
+#include <algorithm>
 
 using namespace std;
+
+void showFirst3Connections( City* local ) {
+   vector<Connection*>* c = local->getConnections();
+   int numConnections = min( 5, (int)c->size() );
+   for ( int i = 0; i < numConnections; i++ ) {
+      City* other = c->at(i)->toCity;
+      
+      cout << local->getName() << " to " << other->getName() << " is " << local->distanceTo( other ) << " miles"\
+         " (takes " << local->flightTimeInMinutes( other ) + local->terminalWaitInMitues( other ) << " minutes)" << endl;
+   }
+
+   cout << endl;
+}
 
 int main( int argc, char** argv ) {
    if ( argc < 3 ) {
@@ -17,12 +31,9 @@ int main( int argc, char** argv ) {
    FILE *cities = fopen( "data/cities.txt", "r+" );
    while ( !feof( cities ) ) {
       City *c = new City( cities );
-      cout << c->getName() << " at (" << c->getX()  << "," << c->getY() << ") is " << ( c->isHub() ? "" : "not " ) << "a hub"  << endl;
       cityList.push_back( c );
    }
    fclose( cities );
-
-   cout << "List is " << cityList.size() << " elements" <<  endl;
    
    int fromCity = 0;
    int toCity = 0;
@@ -46,10 +57,10 @@ int main( int argc, char** argv ) {
       fromCity++;
       line.clear();
    }
+  
+   connections.close();
 
-   City* local = cityList[0];
-   City* other = cityList[0]->getConnections()->at(0)->toCity;
-
-   cout << local->getName() << " to " << other->getName() << " is " << local->distanceTo( other ) << " miles"\
-   " (takes " << local->flightTimeInMinutes( other ) << " minutes)" << endl;
+   for ( int i = 0; i < 5; i++ ) {
+      showFirst3Connections( cityList[i] );
+   }
 }
