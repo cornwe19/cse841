@@ -47,5 +47,9 @@ int main( int argc, char** argv ) {
       line.clear();
    }
 
-   cout << cityList[0]->getName() << " has " << cityList[0]->getConnections()->size() << " connections" << endl;
+   City* local = cityList[0];
+   City* other = cityList[0]->getConnections()->at(0)->toCity;
+
+   cout << local->getName() << " to " << other->getName() << " is " << local->distanceTo( other ) << " miles"\
+   " (takes " << local->flightTimeInMinutes( other ) << " minutes)" << endl;
 }
