@@ -40,14 +40,19 @@ int main( int argc, char** argv ) {
    int cost;
    string line;
 
+   float leastCostPerMile = -1;
+
    ifstream connections( "data/flightCharges.txt" );
    while( getline( connections, line ) ) {
       istringstream currentLine( line );
-      while ( currentLine ) {
-         currentLine >> cost;
-
+      while ( currentLine >> cost ) {
          if ( cost > 0 ) {
             cityList[fromCity]->addConnection( cost, cityList[toCity] );
+
+            float costPerMile = ((float)cost / (float)cityList[fromCity]->distanceTo( cityList[toCity] ));
+            if ( leastCostPerMile < 0 || costPerMile < leastCostPerMile ) {
+               leastCostPerMile = costPerMile;
+            }
          }
 
          toCity++;
@@ -59,6 +64,8 @@ int main( int argc, char** argv ) {
    }
   
    connections.close();
+
+   cout << "Least cost per mile on map is " << leastCostPerMile << endl << endl;
 
    for ( int i = 0; i < 5; i++ ) {
       showFirst3Connections( cityList[i] );
