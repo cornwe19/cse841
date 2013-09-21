@@ -1,13 +1,35 @@
+#include <vector>
+
+using std::vector;
+
+class City;
+
+typedef struct Connection {
+   int cost;
+   City* toCity;
+
+   Connection( int cost, City* toCity ) : 
+      cost( cost ), toCity( toCity ) {}
+} Connection;
+
 class City {
    public:
       City( FILE* file ) {
          _name = new char[128];
-         fscanf( file, "%s (%d,%d)", _name, &_x, &_y );
+         fscanf( file, "%s (%d,%d)\n", _name, &_x, &_y );
+
+         _connections = new vector<Connection*>();
       }
       
       ~City() {
          delete [] _name;
          _name = NULL;
+
+         for ( int i = 0; i < _connections->size(); i++ ) {
+            delete _connections->at(i);
+         }
+
+         delete _connections;
       }
 
       int getX() {
@@ -25,8 +47,19 @@ class City {
       bool isHub() {
          return _name[0] == '*';
       }
-   
+  
+      void addConnection( int cost, City* city ) {
+         Connection* connection = new Connection( cost, city );
+         _connections->push_back( connection );
+      }
+
+      vector<Connection*>* getConnections() {
+         return _connections;
+      }
+
    private:
       char* _name;
       int   _x, _y;
+
+      vector<Connection*> *_connections;
 };
