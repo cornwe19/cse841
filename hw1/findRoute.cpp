@@ -3,23 +3,12 @@
 #include <sstream>
 #include "city.h"
 #include "connection.h"
+#include "city_comparator.h"
 #include <vector>
+#include <set>
 #include <algorithm>
 
 using namespace std;
-
-void showFirst3Connections( City* local ) {
-   vector<Connection*>* c = local->getConnections();
-   int numConnections = min( 5, (int)c->size() );
-   for ( int i = 0; i < numConnections; i++ ) {
-      City* other = c->at(i)->getToCity();
-      
-      cout << local->getName() << " to " << other->getName() << " is " << local->distanceTo( other ) << " miles"\
-         " (takes " << local->flightTimeInMinutes( other ) + local->terminalWaitInMitues( other ) << " minutes)" << endl;
-   }
-
-   cout << endl;
-}
 
 int main( int argc, char** argv ) {
    if ( argc < 3 ) {
@@ -69,14 +58,67 @@ int main( int argc, char** argv ) {
    cout << "Least cost per mile on map is " << leastCostPerMile << endl << endl;
 
    // TODO: check bounds
-   City* start    = cityList[ atoi( argv[0] ) ];
-   City* dest     = cityList[ atoi( argv[1] ) ];
-   float timeCost = atof( argv[2] );
+   City* start    = cityList[ atoi( argv[1] ) ];
+   City* dest     = cityList[ atoi( argv[2] ) ];
+   float timeCost = atof( argv[3] );
 
-   //priority_queue<City*, vector<City*>, ConnectionComparator> openConnections( CityComparator( dest, timeCost, leastCostPerMile ) );
-   // TODO: do something with it
+   set<City*, CityComparator> openConnections;
+  
+   for ( int i = 0; i < cityList.size(); i++ ) {
+      if ( cityList[i] == start ) {
+         // cout << "Setting " << cityList[i]->getName() << " as start city" << endl;
+         cityList[i]->cost = 0.0f;
+      }
 
-   for ( int i = 0; i < 5; i++ ) {
-      showFirst3Connections( cityList[i] );
+      openConnections.insert( cityList[i] );
+   }
+
+   while( !openConnections.empty() ) {
+      City* current = ( *openConnections.begin() );
+      // cout << "Testing " << current->getName() << endl;
+
+      if ( current == dest ) {
+         // cout << current->getName() << " is destination. Exiting" << endl;
+         break;
+      }
+      
+      openConnections.erase( current );
+      current->isKnown = true;
+
+      vector<Connection*>* nextConnections = current->getConnections();
+
+      for ( int i = 0; i < nextConnections->size(); i++ ) {
+         Connection* con = nextConnections->at(i);
+         City* toCity = con->getToCity();
+
+         float conCost = current->cost + con->totalCost( timeCost ) + toCity->computeHeuristic( dest, timeCost, leastCostPerMile ); 
+         
+         if ( !toCity->isKnown && conCost < toCity->cost ) {
+            // cout << " - Updating connection " << current->getName() << "->" << toCity->getName() << " $" << conCost << endl;
+            openConnections.erase( toCity );
+
+            toCity->cost = conCost;
+            toCity->link = con;
+
+            openConnections.insert( toCity );
+         }
+      }
+   }
+  
+   vector<Connection*> results;
+   City* last = dest;
+   while ( true ) {
+      if ( last->link == NULL ) {
+         break;
+      }
+
+      results.insert( results.begin(), last->link );
+      last = last->link->getFromCity();
+   }
+
+   for ( int i = 0; i < results.size(); i++ ) {
+      City *from = results[i]->getFromCity();
+      City *to   = results[i]->getToCity();
+      cout << from->getName() << " - " << to->getName() << " " << from->terminalWaitInMitues( to ) + from->flightTimeInMinutes( to ) << " $" << results[i]->totalCost( timeCost ) << endl;
    }
 }

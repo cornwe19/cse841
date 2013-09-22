@@ -27,6 +27,11 @@ class City {
 
       vector<Connection*>* getConnections() { return _connections; }
 
+      // For graph search
+      bool        isKnown;
+      float       cost;
+      Connection* link;
+
    private:
       char* _name;
       int   _x, _y;

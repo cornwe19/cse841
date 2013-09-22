@@ -2,6 +2,7 @@
 #define CONNECTION_H
 
 #include "city.h"
+#include <cfloat>
 
 class Connection {
 
@@ -20,11 +21,12 @@ public:
    City* getToCity() {
       return _toCity;
    }
+
+
 private:
    City* _fromCity;
    City* _toCity;
    int   _cost;
-
 };
 
 #endif

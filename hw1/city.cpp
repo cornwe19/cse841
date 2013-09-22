@@ -1,9 +1,14 @@
 #include "city.h"
 #include "connection.h"
+#include <cfloat>
 
 City::City( FILE* file ) {
    _name = new char[128];
    fscanf( file, "%s (%d,%d)\n", _name, &_x, &_y );
+
+   isKnown = false;
+   cost = FLT_MAX;
+   link = NULL;
 
    _connections = new vector<Connection*>();
 }
@@ -42,7 +47,6 @@ int City::terminalWaitInMitues( City* other ) {
 
    return waitHours * 60;
 }
-
 
 float City::computeHeuristic( City* dest, float costPerHour, float leastCostPerMile ) {
    return leastCostPerMile * distanceTo( dest ) + totalTimeCost( dest, costPerHour );
