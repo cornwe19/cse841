@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include "city.h"
+#include "connection.h"
 #include <vector>
 #include <algorithm>
 
@@ -11,7 +12,7 @@ void showFirst3Connections( City* local ) {
    vector<Connection*>* c = local->getConnections();
    int numConnections = min( 5, (int)c->size() );
    for ( int i = 0; i < numConnections; i++ ) {
-      City* other = c->at(i)->toCity;
+      City* other = c->at(i)->getToCity();
       
       cout << local->getName() << " to " << other->getName() << " is " << local->distanceTo( other ) << " miles"\
          " (takes " << local->flightTimeInMinutes( other ) + local->terminalWaitInMitues( other ) << " minutes)" << endl;
@@ -66,6 +67,14 @@ int main( int argc, char** argv ) {
    connections.close();
 
    cout << "Least cost per mile on map is " << leastCostPerMile << endl << endl;
+
+   // TODO: check bounds
+   City* start    = cityList[ atoi( argv[0] ) ];
+   City* dest     = cityList[ atoi( argv[1] ) ];
+   float timeCost = atof( argv[2] );
+
+   //priority_queue<City*, vector<City*>, ConnectionComparator> openConnections( CityComparator( dest, timeCost, leastCostPerMile ) );
+   // TODO: do something with it
 
    for ( int i = 0; i < 5; i++ ) {
       showFirst3Connections( cityList[i] );
