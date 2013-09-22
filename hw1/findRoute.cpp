@@ -56,9 +56,17 @@ int main( int argc, char** argv ) {
   
    connections.close();
 
-   // TODO: check bounds
-   City* start    = cityList[ atoi( argv[1] ) ];
-   City* dest     = cityList[ atoi( argv[2] ) ];
+   int startIndex = atoi( argv[1] );
+   int destIndex  = atoi( argv[2] );
+
+   if ( startIndex >= cityList.size() || startIndex < 0 ||
+        destIndex  >= cityList.size() || destIndex  < 0 ) {
+      cerr << "Start city and end city must be integers in the range [0.." << cityList.size() << ")" << endl;
+      return -1;
+   }
+
+   City* start    = cityList[startIndex];
+   City* dest     = cityList[destIndex];
    float timeCost = atof( argv[3] );
 
    set<City*, CityComparator> openConnections;
