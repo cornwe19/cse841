@@ -73,7 +73,6 @@ int main( int argc, char** argv ) {
   
    for ( int i = 0; i < cityList.size(); i++ ) {
       if ( cityList[i] == start ) {
-         // cout << "Setting " << cityList[i]->getName() << " as start city" << endl;
          cityList[i]->cost = 0.0f;
       }
 
@@ -82,10 +81,8 @@ int main( int argc, char** argv ) {
 
    while( !openConnections.empty() ) {
       City* current = ( *openConnections.begin() );
-      // cout << "Testing " << current->getName() << endl;
 
       if ( current == dest ) {
-         // cout << current->getName() << " is destination. Exiting" << endl;
          break;
       }
       
@@ -101,7 +98,6 @@ int main( int argc, char** argv ) {
          float conCost = current->cost + con->totalCost( timeCost ) + toCity->computeHeuristic( dest, timeCost, leastCostPerMile ); 
          
          if ( !toCity->isKnown && conCost < toCity->cost ) {
-            // cout << " - Updating connection " << current->getName() << "->" << toCity->getName() << " $" << conCost << endl;
             openConnections.erase( toCity );
 
             toCity->cost = conCost;
@@ -131,7 +127,7 @@ int main( int argc, char** argv ) {
       
       int nextTotalTime = totalTime + from->terminalWaitInMitues( to ) + from->flightTimeInMinutes( to );
       
-      printf( "%d. %s - %s %02d:%02d %02d:%02d $%.2f\n", i + 1, from->getName(), to->getName(),
+      printf( "%d. %s - %s %d:%02d %d:%02d $%.2f\n", i + 1, from->getName(), to->getName(),
          totalTime / 60, totalTime % 60, nextTotalTime / 60, nextTotalTime % 60,
          results[i]->totalCost( timeCost ) );
       
