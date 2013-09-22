@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <iomanip>
 
 using namespace std;
 
@@ -54,8 +55,6 @@ int main( int argc, char** argv ) {
    }
   
    connections.close();
-
-   cout << "Least cost per mile on map is " << leastCostPerMile << endl << endl;
 
    // TODO: check bounds
    City* start    = cityList[ atoi( argv[1] ) ];
@@ -115,10 +114,22 @@ int main( int argc, char** argv ) {
       results.insert( results.begin(), last->link );
       last = last->link->getFromCity();
    }
-
+   
+   int totalTime = 0;
+   float totalCost = 0.0f;
    for ( int i = 0; i < results.size(); i++ ) {
       City *from = results[i]->getFromCity();
       City *to   = results[i]->getToCity();
-      cout << from->getName() << " - " << to->getName() << " " << from->terminalWaitInMitues( to ) + from->flightTimeInMinutes( to ) << " $" << results[i]->totalCost( timeCost ) << endl;
+      
+      int nextTotalTime = totalTime + from->terminalWaitInMitues( to ) + from->flightTimeInMinutes( to );
+      
+      printf( "%d. %s - %s %02d:%02d %02d:%02d $%.2f\n", i + 1, from->getName(), to->getName(),
+         totalTime / 60, totalTime % 60, nextTotalTime / 60, nextTotalTime % 60,
+         results[i]->totalCost( timeCost ) );
+      
+      totalTime =  nextTotalTime;
+      totalCost += results[i]->totalCost( timeCost );
    }
+
+   printf( "Total Cost: $%.2f\n", totalCost );
 }
