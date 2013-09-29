@@ -13,7 +13,6 @@ City::City( FILE* file ) {
    _connections = new vector<Connection*>();
 }
 
-
 City::~City() {
    delete [] _name;
    _name = NULL;
@@ -23,6 +22,15 @@ City::~City() {
    }
 
    delete _connections;
+}
+
+char* City::getName() {
+   if ( isHub() ) {
+      // Ignore the '*' indicating a hub city
+      return &_name[1];
+   } else {
+      return &_name[0];
+   }
 }
 
 int City::distanceTo( City* other ) {

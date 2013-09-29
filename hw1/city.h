@@ -16,7 +16,7 @@ class City {
 
       int   getX() { return _x; }
       int   getY() { return _y; }
-      char* getName() { return _name;}
+      char* getName();
       bool  isHub() { return _name[0] == '*'; }
 
       int   distanceTo( City* other );
