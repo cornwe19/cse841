@@ -1,0 +1,23 @@
+FindRoute Compilation and Run instructions
+Dennis Cornwell - CSE841 - 9/29/13
+
+Compiling:
+1. Download all source files into the same directory (referred to as the 'root directory')
+   1.1 Source files include:
+   	 - findRoute.cpp
+   	 - city.h
+   	 - city.cpp
+   	 - connection.h
+   	 - connection_comparator.h
+   	 - Makefile
+   	 - cities.txt // loaded by the program on startup
+   	 - flightCharges.txt // loaded by the program on startup
+2. Run make in this directory
+	2.1 Note that a bin/ directory will be generated, but the final binary file will be created in
+		 the root directory.
+	2.2 Running the target 'clean' will remove all binary files including the findRoute program.
+
+Running:
+1. From the root directory, run findRoute with the two integer city IDs and a floating point cost/hour value.
+	1.1 Example: ./findRoute 2 3 17.50
+
