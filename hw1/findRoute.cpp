@@ -19,7 +19,7 @@ int main( int argc, char** argv ) {
    
    vector<City*> cityList;
 
-   FILE *cities = fopen( "data/cities.txt", "r+" );
+   FILE *cities = fopen( "cities.txt", "r+" );
    while ( !feof( cities ) ) {
       City *c = new City( cities );
       cityList.push_back( c );
@@ -33,7 +33,7 @@ int main( int argc, char** argv ) {
 
    float leastCostPerMile = -1;
 
-   ifstream connections( "data/flightCharges.txt" );
+   ifstream connections( "flightCharges.txt" );
    while( getline( connections, line ) ) {
       istringstream currentLine( line );
       while ( currentLine >> cost ) {
