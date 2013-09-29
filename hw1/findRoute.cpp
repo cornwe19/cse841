@@ -39,7 +39,8 @@ int main( int argc, char** argv ) {
       while ( currentLine >> cost ) {
          if ( cost > 0 ) {
             cityList[fromCity]->addConnection( cost, cityList[toCity] );
-
+            
+            // While we're loading in connection costs, cache the least cost/mile on the map
             float costPerMile = ((float)cost / (float)cityList[fromCity]->distanceTo( cityList[toCity] ));
             if ( leastCostPerMile < 0 || costPerMile < leastCostPerMile ) {
                leastCostPerMile = costPerMile;
@@ -69,9 +70,11 @@ int main( int argc, char** argv ) {
    City* dest     = cityList[destIndex];
    float timeCost = atof( argv[3] );
 
+   // Priority queue based on CityComparator logic
    set<City*, CityComparator> openConnections;
   
    for ( int i = 0; i < cityList.size(); i++ ) {
+      // Note that the rest of the cities get initialized with a cost of FLT_MAX
       if ( cityList[i] == start ) {
          cityList[i]->cost = 0.0f;
       }
@@ -95,6 +98,7 @@ int main( int argc, char** argv ) {
          Connection* con = nextConnections->at(i);
          City* toCity = con->getToCity();
 
+         // Compute cost as current cost to get to city X + the cost of the connection from X to new city Y + the heuristic for selecting city Y
          float conCost = current->cost + con->totalCost( timeCost ) + toCity->computeHeuristic( dest, timeCost, leastCostPerMile ); 
          
          if ( !toCity->isKnown && conCost < toCity->cost ) {
