@@ -11,5 +11,5 @@ mkbin:
 
 clean:
 	rm -rf findRoute
-	rm -rf findRoute.dSYM
+	rm -rf findRoute.dSYM # Generated when building on OSX
 	rm -rf bin/*
