@@ -1,18 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "settings.h"
 
 void usage( char** argv ) {
    fprintf( stderr, "Usage: %s [-l NUM_EPOCHS] -f FILE_NAME_LIST -d NETWORK_FILE -o OUTPUT_FILE\n", argv[0] );
    exit( 1 );
 }
 
-int main( int argc, char** argv ) {
-   char* filesListFile = NULL;
-   char* networkFile = NULL;
-   char* outputFile = NULL;
-   int   numEpochs = 0;
-
-   // Parse commandline options
+void parseCmdArgs( int argc, char** argv, settings_t* settings ) {
    if ( argc % 2 != 1 ) {
       usage( argv );
    }
@@ -25,16 +20,16 @@ int main( int argc, char** argv ) {
       if ( option[0] == '-' ) {
          switch( option[1] ) {
             case 'd':
-               networkFile = value;
+               settings->networkFile = value;
                break;
             case 'f':
-               filesListFile = value;
+               settings->listingFile = value;
                break;
             case 'l':
-               numEpochs = atoi( value );
+               settings->numEpochs = atoi( value );
                break;
             case 'o':
-               outputFile = value;
+               settings->outputFile = value;
                break;
             default:
                usage( argv );
@@ -43,16 +38,23 @@ int main( int argc, char** argv ) {
       }
    }
 
-   if ( filesListFile == NULL || networkFile == NULL || outputFile == NULL ) {
+   if ( !areSettingsValid( settings ) ) {
       usage( argv );
    }
+}
 
+int main( int argc, char** argv ) {
+   settings_t settings;
 
-   printf( "Received the following parameters\n" );
-   printf( "- network file: %s\n", networkFile );
-   printf( "- file list: %s\n", filesListFile );
-   printf( "- output file: %s\n", outputFile );
-   printf( "- numEpochs: %d\n", numEpochs );
+   parseCmdArgs( argc, argv, &settings );
+
+   FILE* listing = fopen( settings.listingFile, "r+" );   
+
+   if ( listing ) {
+      printf( "Opened listing successfully\n" ); 
+   }
+
+   fclose( listing );
 
    return 0;
 }
