@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
 #include "settings.h"
 #include "listing.h"
+
+#define IMAGE_SIZE 88*64
+
+using namespace std;
 
 void usage( char** argv ) {
    fprintf( stderr, "Usage: %s [-l NUM_EPOCHS] -f FILE_NAME_LIST -d NETWORK_FILE -o OUTPUT_FILE\n", argv[0] );
@@ -53,11 +58,33 @@ int main( int argc, char** argv ) {
    listing.load( &settings );
 
    printf( "Loaded %d classes\n", listing.getNumClasses() );
+   printf( "Generating mean image for class 0\n" );
 
-   printf( "Class 1:\n" );
-   for ( unsigned i = 0; i < listing.getClass( 0 )->size(); i++ ) {
-      printf( " - %s\n", listing.getClass( 0 )->at( i )->c_str() );
+   char* mean = new char[IMAGE_SIZE];
+   char* x    = new char[IMAGE_SIZE];
+
+   vector<char*>* class0 = listing.getClass( 0 );
+
+   ifstream current( class0->at( 0 ), ios::binary );
+   current.read( mean, IMAGE_SIZE );
+   current.close();
+
+   for ( unsigned gen = 1; gen < class0->size(); gen++ ) {
+      current.open( class0->at( gen ), ios::binary );
+      current.read( x, IMAGE_SIZE );
+
+      float oneOverN = ( (float)gen / (float)( gen + 1 ) );
+      for ( int i = 0; i < IMAGE_SIZE; i++ ) {
+         mean[i] =  (char)( oneOverN * mean[i] + oneOverN * x[i] );
+      }
+
+      current.close();
    }
+   
+   printf( "Saving image to meanout.raw\n" );
+   ofstream meanOut( "meanout.raw", ios::binary );
+   meanOut.write( mean, IMAGE_SIZE );
+   meanOut.close();
 
    return 0;
 }

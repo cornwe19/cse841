@@ -1,15 +1,17 @@
 #include "listing.h"
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <stdio.h>
 
 Listing::Listing() {
-   _listing = new vector<vector<string*>*>();
+   _listing = new vector<vector<char*>*>();
 }
 
 Listing::~Listing() {
    for ( unsigned i = 0; i < _listing->size(); i++ ) {
       for ( unsigned j = 0; j < _listing->at( i )->size(); j++ ) {
-         delete _listing->at( i )->at( j );
+         delete [] _listing->at( i )->at( j );
       }
       delete _listing->at( i );
    }
@@ -17,8 +19,15 @@ Listing::~Listing() {
    delete _listing;
 }
 
+string* getImagesDir( Settings* settings ) {
+   string fullPath( settings->listingFile );
+   return new string( fullPath.substr( 0, fullPath.find_last_of( "/" ) ) );
+}
+
 int Listing::load( Settings* settings ) {
    ifstream listing( settings->listingFile );
+   string* imagesDir = getImagesDir( settings );
+   int error = LOAD_OK;
 
    if ( listing.is_open() ) {
       unsigned numClasses = 0;
@@ -32,19 +41,27 @@ int Listing::load( Settings* settings ) {
       }
 
       for ( unsigned c = 0; c < numClasses; c++ ) {
-         vector<string*>* clazz = new vector<string*>();
+         vector<char*>* clazz = new vector<char*>();
          
          for ( unsigned i = 0; i < classSizes[c]; i++ ) {
-            string* fileName = new string();
-            listing >> *fileName;
-            clazz->push_back( fileName );
+            char* filePath = new char[FILE_NAME_MAX];
+            char fileName[FILE_NAME_MAX];
+            
+            listing >> fileName;
+            // Concat file name with directory path
+            sprintf( filePath, "%s/%s", imagesDir->c_str(), fileName );
+            
+            clazz->push_back( filePath );
          }
 
          _listing->push_back( clazz );
       }
 
-      return LOAD_OK;
    } else {
-      return LOAD_OPEN_FILE_FAIL;
+      error = LOAD_OPEN_FILE_FAIL;
    }
+
+   delete imagesDir;
+
+   return error;
 }
