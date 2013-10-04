@@ -7,7 +7,7 @@ void usage( char** argv ) {
    exit( 1 );
 }
 
-void parseCmdArgs( int argc, char** argv, settings_t* settings ) {
+void parseCmdArgs( int argc, char** argv, Settings* settings ) {
    if ( argc % 2 != 1 ) {
       usage( argv );
    }
@@ -38,13 +38,13 @@ void parseCmdArgs( int argc, char** argv, settings_t* settings ) {
       }
    }
 
-   if ( !areSettingsValid( settings ) ) {
+   if ( !settings->areValid() ) {
       usage( argv );
    }
 }
 
 int main( int argc, char** argv ) {
-   settings_t settings;
+   Settings settings;
 
    parseCmdArgs( argc, argv, &settings );
 
