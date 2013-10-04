@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "settings.h"
+#include "listing.h"
 
 void usage( char** argv ) {
    fprintf( stderr, "Usage: %s [-l NUM_EPOCHS] -f FILE_NAME_LIST -d NETWORK_FILE -o OUTPUT_FILE\n", argv[0] );
@@ -48,13 +49,15 @@ int main( int argc, char** argv ) {
 
    parseCmdArgs( argc, argv, &settings );
 
-   FILE* listing = fopen( settings.listingFile, "r+" );   
+   Listing listing;
+   listing.load( &settings );
 
-   if ( listing ) {
-      printf( "Opened listing successfully\n" ); 
+   printf( "Loaded %d classes\n", listing.getNumClasses() );
+
+   printf( "Class 1:\n" );
+   for ( unsigned i = 0; i < listing.getClass( 0 )->size(); i++ ) {
+      printf( " - %s\n", listing.getClass( 0 )->at( i )->c_str() );
    }
-
-   fclose( listing );
 
    return 0;
 }
