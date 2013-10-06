@@ -10,6 +10,13 @@ public:
    char* outputFile;
    int   numEpochs;
 
+   Settings() {
+      listingFile = NULL;
+      networkFile = NULL;
+      outputFile  = NULL;
+      numEpochs   = 1;
+   }
+
    bool areValid() {
       return listingFile != NULL &&
              networkFile != NULL &&
