@@ -9,12 +9,14 @@ public:
    char* networkFile;
    char* outputFile;
    int   numEpochs;
+   char* testImage;
 
    Settings() {
       listingFile = NULL;
       networkFile = NULL;
       outputFile  = NULL;
       numEpochs   = 1;
+      testImage   = NULL;
    }
 
    bool areValid() {

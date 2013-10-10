@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <fstream>
 #include <cmath>
+#include <climits>
 #include <numeric>
+#include <cfloat>
 #include "settings.h"
 #include "listing.h"
+#include "image.h"
 
 #define IMAGE_SIZE 64*88
 
@@ -39,6 +42,9 @@ void parseCmdArgs( int argc, char** argv, Settings* settings ) {
             case 'o':
                settings->outputFile = value;
                break;
+            case 't':
+               settings->testImage = value;
+               break;
             default:
                usage( argv );
                break;
@@ -51,26 +57,44 @@ void parseCmdArgs( int argc, char** argv, Settings* settings ) {
    }
 }
 
-void amnesiac( unsigned i, float* w1, float* w2 ) {
+void amnesic( unsigned t, float* w1, float* w2 ) {
    float t1 = 20;
-   float t2 = 200;
-   float r  = 2000;
+   float t2 = 500;
+   float r  = 1000;
    float mu = 0;
 
-   if ( i > t1 && i <= t2 ) {
-      mu = 2.0f * ( i - t1 ) / ( t2 - t1 );
-   } else if ( i > t2 ) {
-      mu = 2.0f + ( i - t2 ) / r;
+   if ( t >= t1 && t < t2 ) {
+      mu = 2.0f * ( t - t1 ) / ( t2 - t1 );
+   } else if ( t >= t2 ) {
+      mu = 2.0f + ( t - t2 ) / r;
    }
 
-   *w1 = ( i - 1 - mu ) / i;
-   *w2 = ( 1 + mu ) / i;
+   *w1 = ( t - 1 - mu ) / t;
+   *w2 = ( 1 + mu ) / t;
 }
 
 int sum_square( int x, int y ) { return x + y*y; }
 
-float vecLen( char* vec, size_t size ) {
+float vecLen( int* vec, size_t size ) {
    return sqrt( accumulate( vec, vec + size, 0, sum_square ) );
+}
+
+void scaleTo255( char* dest, int* src ) {
+   for ( int i = 0; i < IMAGE_SIZE; i++ ) {
+      dest[i] = ( 255 * ( src[i] - INT_MIN ) ) / ( INT_MAX - INT_MIN );
+   }
+}
+
+void dumpEigFaces( unsigned gen, char* scratch, vector<int*> data ) {
+   for ( unsigned i = 0; i < data.size(); i++ ) {
+      scaleTo255( scratch, data[i] );
+
+      char outName[32];
+      sprintf( outName, "eig%d-%d.raw", i, gen );
+      ofstream viOut( outName, ios::binary );
+      viOut.write( scratch, IMAGE_SIZE );
+      viOut.close();
+   }
 }
 
 int main( int argc, char** argv ) {
@@ -82,72 +106,113 @@ int main( int argc, char** argv ) {
    listing.load( &settings );
 
    printf( "Loaded %d classes\n", listing.getNumClasses() );
-   printf( "Generating mean image for class 0\n" );
 
-   char* mean = new char[IMAGE_SIZE];
+   if ( settings.testImage != NULL ) {
+      Image test( settings.testImage );
+      double leastDistance = DBL_MAX;
+
+      for ( int i = 0; i < listing.getNumClasses(); i++ ) {
+         vector<char*> *clazz = listing.getClass( i );
+
+         for ( unsigned j = 0; j < clazz->size(); j++ ) {
+            Image *current = new Image( clazz->at( j ) );
+            double dist = test.euclideanDistanceTo( current );
+            
+            if ( dist < leastDistance ) {
+               if ( test.bestMatch != NULL ) {
+                  delete test.bestMatch;
+               }
+
+               leastDistance = dist;
+               test.bestMatch = current;
+            }
+         }
+      }
+
+      printf( "%s matched class %s\n", test.getFileName(), test.bestMatch->getClassName() );
+   }
+
+/*
    char* x    = new char[IMAGE_SIZE];
-   char* u    = new char[IMAGE_SIZE];
+   int* mean  = new int[IMAGE_SIZE];
+   int* u     = new int[IMAGE_SIZE];
 
-   vector<char*> v; // Holds our eigen vectors
+   vector<int*> v; // Holds our eigen vectors
    unsigned k = 1;
 
-   vector<char*>* clazz = listing.getClass( 0 );
+   vector<char*>* clazz = listing.getClass( 1 );
 
    ifstream current( clazz->at( 0 ), ios::binary );
-   current.read( mean, IMAGE_SIZE );
+   current.read( x, IMAGE_SIZE );
    current.close();
 
+   for ( int i = 0; i < IMAGE_SIZE; i++ ) {
+      mean[i] = (int)x[i];
+   }
+   
+   int n = 2;
+   float w1 = 0;
+   float w2 = 0;
+
    for ( int e = 0; e < settings.numEpochs; e++ ) {
-      for ( unsigned t = 1; t < clazz->size(); t++ ) {
+      for ( unsigned t = 0; t < clazz->size(); t++ ) {
          current.open( clazz->at( t ), ios::binary );
          current.read( x, IMAGE_SIZE );
 
-         float oneOverN = ( (float)t / (float)( t + 1 ) );
+         float tOverN = ( (float)( t ) / (float)( t + 1 ) );
+         float oneOverN = ( 1.0f / (float)( t + 1 ) );
          for ( int i = 0; i < IMAGE_SIZE; i++ ) {
-            mean[i] =  (char)( oneOverN * mean[i] + oneOverN * x[i] );
+            mean[i] = tOverN * mean[i] + oneOverN * x[i];
             u[i] = x[i] - mean[i];
          }
 
-         if ( k == t ) {
-            char* vi = new char[IMAGE_SIZE];
-            memcpy( vi, u, IMAGE_SIZE );
-            v.push_back( vi );
-            k++;
-         } else {
-            float w1 = 0;
-            float w2 = 0;
-            amnesiac( t, &w1, &w2 );
-            float lvi = vecLen( v[1], IMAGE_SIZE );
-            for ( unsigned i = 1; i < min( t, k ); i++ ) {
+         amnesic( n++, &w1, &w2 );
+
+         for ( unsigned i = 0; i <= min( t, k ); i++ ) {
+
+            if ( i == t ) {
+               int* vi = new int[IMAGE_SIZE];
+               for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                  vi[j] = u[j];
+               }
+               v.push_back( vi );
+               k++;
+            } else {
+               float lvi = vecLen( v[i], IMAGE_SIZE );
+
+               int yi = 0;
+               for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                  yi += u[j] * ( v[i][j] / lvi );
+               }
+               
                for ( int j = 0; j < IMAGE_SIZE; j++ ) {
                   // Update current principal component estimate
-                  v[i][j] = w1 * v[i][j] + w2 * v[i][j] * u[i] * u[i] / lvi;
+                  v[i][j] = w1 * v[i][j] + w2 * yi * u[j];
                }
 
-               lvi = vecLen( v[i], IMAGE_SIZE );
+               lvi = vecLen( v[i], IMAGE_SIZE ); // Update norm(v[i])
                for ( int j = 0; j < IMAGE_SIZE; j++ ) {
                   // Update residual for next component
-                  u[i] = u[i] - (u[i] * v[i][j] * v[i][j]) / (lvi * lvi);
+                  u[j] = u[j] - yi * (v[i][j] / lvi);
                }
             }
          }
+      }
 
-         current.close();
+      current.close();
+      
+      if ( e == 0 ) {
+         dumpEigFaces( e, x, v );
       }
    }
 
-   printf( "Saving image to meanout.raw\n" );
+   dumpEigFaces( settings.numEpochs, x, v );
+
    ofstream meanOut( "meanout.raw", ios::binary );
-   meanOut.write( mean, IMAGE_SIZE );
+   scaleTo255( x, mean );
+   meanOut.write( x, IMAGE_SIZE );
    meanOut.close();
-   
-   for ( unsigned i = 0; i < v.size(); i++ ) {
-      char outName[32];
-      sprintf( outName, "eig%d.raw", i );
-      ofstream viOut( outName, ios::binary );
-      viOut.write( v[i], IMAGE_SIZE );
-      viOut.close();
-   }
+*/
 
    return 0;
 }
