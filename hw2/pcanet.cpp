@@ -37,11 +37,6 @@ double vecLen( double* vec, size_t size ) {
 void scaleTo255( char* dest, double* src ) {
    for ( unsigned i = 0; i < IMAGE_SIZE; i++ ) {
       dest[i] = ( 255 * ( ((long long)src[i] - LLONG_MIN) / (LLONG_MAX - LLONG_MIN) ) );
-      if ( i < 15 ) {
-         printf( "%d,", dest[i] );
-      } else if ( i == 15 ) {
-         printf( "%d\n", dest[i] );
-      }
    }
 }
 
