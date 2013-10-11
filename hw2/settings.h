@@ -12,14 +12,14 @@ public:
    char* networkFile;
    char* outputFile;
    int   numEpochs;
-   char* testImage;
+   char* testingFile;
 
    Settings() {
       listingFile = NULL;
       networkFile = NULL;
       outputFile  = NULL;
       numEpochs   = 1;
-      testImage   = NULL;
+      testingFile = NULL;
    }
 
    void load( int argc, char** argv, char** error ) {
@@ -47,7 +47,7 @@ public:
                   outputFile = value;
                   break;
                case 't':
-                  testImage = value;
+                  testingFile = value;
                   break;
                default:
                   err( argv[0], error );

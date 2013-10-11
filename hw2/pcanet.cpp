@@ -63,34 +63,49 @@ int main( int argc, char** argv ) {
        exit( 1 );
    }
 
-   Listing listing;
-   listing.load( &settings );
+   Listing training;
+   training.load( settings.listingFile );
 
-   printf( "Loaded %d classes\n", listing.getNumClasses() );
+   printf( "Loaded %d classes\n", training.getNumClasses() );
+   
+   if ( settings.testingFile != NULL ) {
+      Listing testing;
+      testing.load( settings.testingFile );
 
-   if ( settings.testImage != NULL ) {
-      Image test( settings.testImage );
-      double leastDistance = DBL_MAX;
+      int numRight = 0;
+      int total = 0;
 
-      for ( int i = 0; i < listing.getNumClasses(); i++ ) {
-         vector<char*> *clazz = listing.getClass( i );
+      for ( int t = 0; t < testing.getNumClasses(); t++ ) {
+         for ( unsigned tc = 0; tc < testing.getClass( t )->size(); tc++ ) {
+            Image test( testing.getClass( t )->at( tc ) );
+            double leastDistance = DBL_MAX;
 
-         for ( unsigned j = 0; j < clazz->size(); j++ ) {
-            Image *current = new Image( clazz->at( j ) );
-            double dist = test.euclideanDistanceTo( current );
-            
-            if ( dist < leastDistance ) {
-               if ( test.bestMatch != NULL ) {
-                  delete test.bestMatch;
+            for ( int i = 0; i < training.getNumClasses(); i++ ) {
+               vector<char*> *clazz = training.getClass( i );
+
+               for ( unsigned j = 0; j < clazz->size(); j++ ) {
+                  Image *current = new Image( clazz->at( j ) );
+                  double dist = test.euclideanDistanceTo( current );
+                  
+                  if ( dist < leastDistance ) {
+                     if ( test.bestMatch != NULL ) {
+                        delete test.bestMatch;
+                     }
+
+                     leastDistance = dist;
+                     test.bestMatch = current;
+                  }
                }
-
-               leastDistance = dist;
-               test.bestMatch = current;
             }
+
+            if ( !strcmp( test.bestMatch->getClassName(), test.getClassName() ) ) {
+               numRight++;
+            }
+            total++;
          }
       }
 
-      printf( "%s matched class %s\n", test.getFileName(), test.bestMatch->getClassName() );
+      printf( "Classifier was right %.2f of the time\n", (float)numRight / (float)total );
    }
 
 /*
@@ -101,7 +116,7 @@ int main( int argc, char** argv ) {
    vector<int*> v; // Holds our eigen vectors
    unsigned k = 1;
 
-   vector<char*>* clazz = listing.getClass( 1 );
+   vector<char*>* clazz = training.getClass( 1 );
 
    ifstream current( clazz->at( 0 ), ios::binary );
    current.read( x, IMAGE_SIZE );

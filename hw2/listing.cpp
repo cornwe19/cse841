@@ -19,14 +19,14 @@ Listing::~Listing() {
    delete _listing;
 }
 
-string* getImagesDir( Settings* settings ) {
-   string fullPath( settings->listingFile );
+string* getImagesDir( char* file ) {
+   string fullPath( file );
    return new string( fullPath.substr( 0, fullPath.find_last_of( "/" ) ) );
 }
 
-int Listing::load( Settings* settings ) {
-   ifstream listing( settings->listingFile );
-   string* imagesDir = getImagesDir( settings );
+int Listing::load( char* file ) {
+   ifstream listing( file );
+   string* imagesDir = getImagesDir( file );
    int error = LOAD_OK;
 
    if ( listing.is_open() ) {
