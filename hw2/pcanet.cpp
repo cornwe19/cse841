@@ -35,8 +35,13 @@ double vecLen( double* vec, size_t size ) {
 }
 
 void scaleTo255( char* dest, double* src ) {
-   for ( int i = 0; i < IMAGE_SIZE; i++ ) {
-      dest[i] = ( 255 * ( src[i] - INT_MIN ) ) / ( INT_MAX - INT_MIN );
+   for ( unsigned i = 0; i < IMAGE_SIZE; i++ ) {
+      dest[i] = ( 255 * ( ((long long)src[i] - LLONG_MIN) / (LLONG_MAX - LLONG_MIN) ) );
+      if ( i < 15 ) {
+         printf( "%d,", dest[i] );
+      } else if ( i == 15 ) {
+         printf( "%d\n", dest[i] );
+      }
    }
 }
 
@@ -68,6 +73,33 @@ int main( int argc, char** argv ) {
   
    printf( "Loaded %d training images\n", training.size() );
 
+   // Mean image
+   double mean[IMAGE_SIZE];
+
+   for ( unsigned c = 0; c < training.numClasses(); c++ ) {
+      imgClass_t* clazz = training.classAt( c );
+
+      for ( unsigned i = 0; i < clazz->size; i++ ) {
+         Image img( clazz->ptr[i] );
+
+         double tOverN = ( (double)( i ) / (double)( i + 1 ) );
+         double oneOverN = ( 1.0f / (double)( i + 1 ) );
+         for ( int p = 0; p < IMAGE_SIZE; p++ ) {
+            mean[p] = tOverN * mean[p] + oneOverN * img[p];
+            //u[i] = x[i] - mean[i];
+         }
+      }
+
+      char x[IMAGE_SIZE];
+      char name[32];
+      sprintf( name, "meanout%d.raw", c );
+      ofstream meanOut( name, ios::binary );
+      scaleTo255( x, mean );
+      meanOut.write( x, IMAGE_SIZE );
+      meanOut.close();
+   }
+
+   // Euclidean testing
    if ( settings.testingFile != NULL ) {
       Listing testing;
       testing.load( settings.testingFile );

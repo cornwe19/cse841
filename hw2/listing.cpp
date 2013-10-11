@@ -14,7 +14,12 @@ Listing::~Listing() {
       delete [] _listing[i];
    }
 
+   for ( unsigned i = 0; i < _numClasses; i++ ) {
+      delete _classes[i];
+   }
+
    delete [] _listing;
+   delete [] _classes;
 }
 
 string* getImagesDir( char* file ) {
@@ -28,15 +33,20 @@ int Listing::load( char* file ) {
    int error = LOAD_OK;
 
    if ( listing.is_open() ) {
-      unsigned numClasses = 0, scratch;
-      listing >> numClasses;
+      listing >> _numClasses;
       listing >> _size;
 
-      for ( unsigned i = 0; i < numClasses; i++ ) {
-         listing >> scratch;
+      _listing = new char*[_size];
+      char** listingPointer = _listing;
+      _classes = new imgClass_t*[_numClasses];
+      for ( unsigned i = 0; i < _numClasses; i++ ) {
+         _classes[i] = new imgClass_t;
+         _classes[i]->ptr = listingPointer;
+         listing >> _classes[i]->size;
+
+         listingPointer += _classes[i]->size;
       }
 
-      _listing = new char*[_size];
       for ( unsigned i = 0; i < _size; i++ ) {
          _listing[i] = new char[FILE_NAME_MAX];
          char fileName[FILE_NAME_MAX];

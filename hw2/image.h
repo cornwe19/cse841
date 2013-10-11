@@ -14,6 +14,8 @@ public:
    double euclideanDistanceTo( Image* image );
    double* getData() { return _data; };
 
+   double& operator[]( unsigned i ) { return _data[i]; }
+
    Image *bestMatch;
    
 private:

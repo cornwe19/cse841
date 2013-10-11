@@ -1,3 +1,6 @@
+#ifndef LISTING_H
+#define LISTING_H
+
 #include "settings.h"
 #include <vector>
 
@@ -8,16 +11,27 @@
 
 using namespace std;
 
+struct imgClass_t {
+   char** ptr;
+   size_t size;
+};
+
 class Listing {
 public:
    Listing();
    ~Listing();
 
-   int      load( char* file );
-   unsigned size() { return _size; } 
-   char*&   operator[](unsigned idx) { return _listing[idx]; }
+   int         load( char* file );
+   unsigned    size() { return _size; } 
+   unsigned    numClasses() { return _numClasses; }
+   char*&      operator[](unsigned idx) { return _listing[idx]; }
+   imgClass_t* classAt( unsigned i ) { return _classes[i]; }
 
 private:
-   unsigned _size;
-   char**   _listing;
+   unsigned     _size;
+   unsigned     _numClasses;
+   imgClass_t** _classes;
+   char**       _listing;
 };
+
+#endif
