@@ -13,11 +13,11 @@ public:
    Listing();
    ~Listing();
 
-   int load( char* file );
-
-   vector<char*>* getClass( int atPosition ) { return _listing->at( atPosition ); }
-   int getNumClasses() { return _listing->size(); }
+   int      load( char* file );
+   unsigned size() { return _size; } 
+   char*&   operator[](unsigned idx) { return _listing[idx]; }
 
 private:
-   vector<vector<char*>*> *_listing;
+   unsigned _size;
+   char**   _listing;
 };

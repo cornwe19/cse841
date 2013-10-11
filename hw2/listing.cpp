@@ -5,18 +5,16 @@
 #include <stdio.h>
 
 Listing::Listing() {
-   _listing = new vector<vector<char*>*>();
+   _listing = NULL;
+   _size    = 0;
 }
 
 Listing::~Listing() {
-   for ( unsigned i = 0; i < _listing->size(); i++ ) {
-      for ( unsigned j = 0; j < _listing->at( i )->size(); j++ ) {
-         delete [] _listing->at( i )->at( j );
-      }
-      delete _listing->at( i );
+   for ( unsigned i = 0; i < _size; i++ ) {
+      delete [] _listing[i];
    }
 
-   delete _listing;
+   delete [] _listing;
 }
 
 string* getImagesDir( char* file ) {
@@ -30,33 +28,22 @@ int Listing::load( char* file ) {
    int error = LOAD_OK;
 
    if ( listing.is_open() ) {
-      unsigned numClasses = 0;
-      unsigned numImages = 0;
+      unsigned numClasses = 0, scratch;
       listing >> numClasses;
-      listing >> numImages;
+      listing >> _size;
 
-      unsigned classSizes[numClasses];
       for ( unsigned i = 0; i < numClasses; i++ ) {
-         listing >> classSizes[i];
+         listing >> scratch;
       }
 
-      for ( unsigned c = 0; c < numClasses; c++ ) {
-         vector<char*>* clazz = new vector<char*>();
-         
-         for ( unsigned i = 0; i < classSizes[c]; i++ ) {
-            char* filePath = new char[FILE_NAME_MAX];
-            char fileName[FILE_NAME_MAX];
-            
-            listing >> fileName;
-            // Concat file name with directory path
-            sprintf( filePath, "%s/%s", imagesDir->c_str(), fileName );
-            
-            clazz->push_back( filePath );
-         }
+      _listing = new char*[_size];
+      for ( unsigned i = 0; i < _size; i++ ) {
+         _listing[i] = new char[FILE_NAME_MAX];
+         char fileName[FILE_NAME_MAX];
+         listing >> fileName;
 
-         _listing->push_back( clazz );
+         sprintf( _listing[i], "%s/%s", imagesDir->c_str(), fileName );
       }
-
    } else {
       error = LOAD_OPEN_FILE_FAIL;
    }

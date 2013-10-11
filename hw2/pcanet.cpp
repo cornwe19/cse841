@@ -28,19 +28,19 @@ void amnesic( unsigned t, float* w1, float* w2 ) {
    *w2 = ( 1 + mu ) / t;
 }
 
-int sum_square( int x, int y ) { return x + y*y; }
+double sum_square( double x, double y ) { return x + y*y; }
 
-float vecLen( int* vec, size_t size ) {
+double vecLen( double* vec, size_t size ) {
    return sqrt( accumulate( vec, vec + size, 0, sum_square ) );
 }
 
-void scaleTo255( char* dest, int* src ) {
+void scaleTo255( char* dest, double* src ) {
    for ( int i = 0; i < IMAGE_SIZE; i++ ) {
       dest[i] = ( 255 * ( src[i] - INT_MIN ) ) / ( INT_MAX - INT_MIN );
    }
 }
 
-void dumpEigFaces( unsigned gen, char* scratch, vector<int*> data ) {
+void dumpEigFaces( unsigned gen, char* scratch, vector<double*> data ) {
    for ( unsigned i = 0; i < data.size(); i++ ) {
       scaleTo255( scratch, data[i] );
 
@@ -65,9 +65,9 @@ int main( int argc, char** argv ) {
 
    Listing training;
    training.load( settings.listingFile );
+  
+   printf( "Loaded %d training images\n", training.size() );
 
-   printf( "Loaded %d classes\n", training.getNumClasses() );
-   
    if ( settings.testingFile != NULL ) {
       Listing testing;
       testing.load( settings.testingFile );
@@ -75,39 +75,33 @@ int main( int argc, char** argv ) {
       int numRight = 0;
       int total = 0;
 
-      for ( int t = 0; t < testing.getNumClasses(); t++ ) {
-         for ( unsigned tc = 0; tc < testing.getClass( t )->size(); tc++ ) {
-            Image test( testing.getClass( t )->at( tc ) );
-            double leastDistance = DBL_MAX;
+      for ( unsigned t = 0; t < testing.size(); t++ ) {
+         Image test( testing[t] );
+         double leastDistance = DBL_MAX;
 
-            for ( int i = 0; i < training.getNumClasses(); i++ ) {
-               vector<char*> *clazz = training.getClass( i );
-
-               for ( unsigned j = 0; j < clazz->size(); j++ ) {
-                  Image *current = new Image( clazz->at( j ) );
-                  double dist = test.euclideanDistanceTo( current );
-                  
-                  if ( dist < leastDistance ) {
-                     if ( test.bestMatch != NULL ) {
-                        delete test.bestMatch;
-                     }
-
-                     leastDistance = dist;
-                     test.bestMatch = current;
-                  }
+         for ( unsigned i = 0; i < training.size(); i++ ) {
+            Image *current = new Image( training[i] );
+            double dist = test.euclideanDistanceTo( current );
+            
+            if ( dist < leastDistance ) {
+               if ( test.bestMatch != NULL ) {
+                  delete test.bestMatch;
                }
-            }
 
-            if ( !strcmp( test.bestMatch->getClassName(), test.getClassName() ) ) {
-               numRight++;
+               leastDistance = dist;
+               test.bestMatch = current;
             }
-            total++;
          }
+
+         if ( !strcmp( test.bestMatch->getClassName(), test.getClassName() ) ) {
+            numRight++;
+         }
+         total++;
       }
 
       printf( "Classifier was right %.2f of the time\n", (float)numRight / (float)total );
    }
-
+   
 /*
    char* x    = new char[IMAGE_SIZE];
    int* mean  = new int[IMAGE_SIZE];
