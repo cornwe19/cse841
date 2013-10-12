@@ -12,11 +12,11 @@
 
 using namespace std;
 
-void amnesic( unsigned t, float* w1, float* w2 ) {
-   float t1 = 20;
-   float t2 = 500;
-   float r  = 1000;
-   float mu = 0;
+void amnesic( unsigned t, double* w1, double* w2 ) {
+   double t1 = 20;
+   double t2 = 500;
+   double r  = 1000;
+   double mu = 0;
 
    if ( t >= t1 && t < t2 ) {
       mu = 2.0f * ( t - t1 ) / ( t2 - t1 );
@@ -28,10 +28,13 @@ void amnesic( unsigned t, float* w1, float* w2 ) {
    *w2 = ( 1 + mu ) / t;
 }
 
-double sum_square( double x, double y ) { return x + y*y; }
-
 double vecLen( double* vec, size_t size ) {
-   return sqrt( accumulate( vec, vec + size, 0, sum_square ) );
+   double sum = 0;
+   for ( unsigned i = 0; i < size; i++ ) {
+      sum += vec[i] * vec[i];
+   }
+
+   return sqrt( sum );
 }
 
 void scaleTo255( char* dest, double* src ) {
@@ -70,28 +73,81 @@ int main( int argc, char** argv ) {
 
    // Mean image
    double mean[IMAGE_SIZE];
+   double u   [IMAGE_SIZE];
+   char   x   [IMAGE_SIZE];
+   
+   int n = 2;
+   double w1 = 0;
+   double w2 = 0;
+   unsigned k = 2;
 
-   for ( unsigned c = 0; c < training.numClasses(); c++ ) {
-      imgClass_t* clazz = training.classAt( c );
+   vector<double*> v[training.numClasses()];
 
-      for ( unsigned i = 0; i < clazz->size; i++ ) {
-         Image img( clazz->ptr[i] );
+   for ( int e = 0; e < settings.numEpochs; e++ ) {
+      for ( unsigned c = 0; c < training.numClasses(); c++ ) {
+         imgClass_t* clazz = training.classAt( c );
 
-         double tOverN = ( (double)( i ) / (double)( i + 1 ) );
-         double oneOverN = ( 1.0f / (double)( i + 1 ) );
+         Image init( clazz->ptr[0] );
          for ( int p = 0; p < IMAGE_SIZE; p++ ) {
-            mean[p] = tOverN * mean[p] + oneOverN * img[p];
-            //u[i] = x[i] - mean[i];
+            mean[p] = init[p];
+         }
+
+         for ( unsigned i = 1; i < clazz->size; i++ ) {
+            Image img( clazz->ptr[i] );
+
+            double tOverN = ( (double)( i ) / (double)( i + 1 ) );
+            double oneOverN = ( 1.0f / (double)( i + 1 ) );
+            for ( int p = 0; p < IMAGE_SIZE; p++ ) {
+               mean[p] = tOverN * mean[p] + oneOverN * img[p];
+               u[p] = img[p] - mean[p];
+            }
+
+            amnesic( n++, &w1, &w2 );
+
+            printf( "%d: len(u) = %f, w1 = %f, w2 = %f\n", i, vecLen( u, IMAGE_SIZE ), w1, w2 );
+            
+            for ( unsigned comp = 0; comp <= min( i - 1, k ); comp++ ) {
+
+               if ( comp == i - 1 ) {
+                  double* vi = new double[IMAGE_SIZE];
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     vi[j] = u[j];
+                  }
+                  v[c].push_back( vi );
+               } else {
+                  double lvi = vecLen( v[c][comp], IMAGE_SIZE );
+
+                  double yi = 0;
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     yi += u[j] * ( v[c][comp][j] / lvi );
+                  }
+
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     // Update current principal component estimate
+                     v[c][comp][j] = w1 * v[c][comp][j] + w2 * yi * u[j];
+                  }
+
+                  lvi = vecLen( v[c][comp], IMAGE_SIZE ); // Update norm(v[i])
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     // Update residual for next component
+                     u[j] = u[j] - yi * (v[c][comp][j] / lvi);
+                  }
+               }
+            }
+         }
+
+         if ( e == 0 || e == settings.numEpochs - 1 ) {
+            dumpEigFaces( c + e, x, v[c] );
+
+            char x[IMAGE_SIZE];
+            char name[32];
+            sprintf( name, "meanout%d.raw", c );
+            ofstream meanOut( name, ios::binary );
+            scaleTo255( x, mean );
+            meanOut.write( x, IMAGE_SIZE );
+            meanOut.close();
          }
       }
-
-      char x[IMAGE_SIZE];
-      char name[32];
-      sprintf( name, "meanout%d.raw", c );
-      ofstream meanOut( name, ios::binary );
-      scaleTo255( x, mean );
-      meanOut.write( x, IMAGE_SIZE );
-      meanOut.close();
    }
 
    // Euclidean testing
