@@ -21,12 +21,14 @@ char* Image::parseClassName( char* fileName ) {
    char* className = new char[CLASS_MAX];
    char* classPtr = className;
    for ( char* i = startPos; i != NULL ; i++ ) {
-      if ( toupper( *i ) != *i ) {
-         *classPtr = *i;
-         classPtr++;
-      } else {
+      // Class is followed by a number or a capital lettered emotion and a number
+      // Checks formats like AdamTa1.raw as well as benH1.raw.face
+      if ( isdigit( *i ) || ( toupper( *i ) == *i && isdigit( *(i+1) ) ) ) {
          *classPtr = NULL;
          break;
+      } else {
+         *classPtr = *i;
+         classPtr++;
       }
    }
 
