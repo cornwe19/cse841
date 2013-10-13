@@ -2,3 +2,5 @@ pcanet
 *.swp
 
 bin/
+out/
+testImages/
