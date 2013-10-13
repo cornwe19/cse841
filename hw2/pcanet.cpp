@@ -31,7 +31,7 @@ void amnesic( unsigned t, double* w1, double* w2 ) {
 double vecLen( double* vec, size_t size ) {
    double sum = 0;
    for ( unsigned i = 0; i < size; i++ ) {
-      sum += vec[i] * vec[i];
+      sum += ( vec[i] * vec[i] );
    }
 
    return sqrt( sum );
@@ -79,7 +79,7 @@ int main( int argc, char** argv ) {
    int n = 2;
    double w1 = 0;
    double w2 = 0;
-   unsigned k = 2;
+   const unsigned k = 5;
 
    vector<double*> v[training.numClasses()];
 
@@ -87,12 +87,17 @@ int main( int argc, char** argv ) {
       for ( unsigned c = 0; c < training.numClasses(); c++ ) {
          imgClass_t* clazz = training.classAt( c );
 
-         Image init( clazz->ptr[0] );
-         for ( int p = 0; p < IMAGE_SIZE; p++ ) {
-            mean[p] = init[p];
+         unsigned iterStart = 0;
+         if ( e == 0 && c == 0 ) {
+            Image init( clazz->ptr[0] );
+            for ( int p = 0; p < IMAGE_SIZE; p++ ) {
+               mean[p] = init[p];
+            }
+
+            iterStart = 1;
          }
 
-         for ( unsigned i = 1; i < clazz->size; i++ ) {
+         for ( unsigned i = iterStart; i < clazz->size; i++ ) {
             Image img( clazz->ptr[i] );
 
             double tOverN = ( (double)( i ) / (double)( i + 1 ) );
@@ -101,55 +106,56 @@ int main( int argc, char** argv ) {
                mean[p] = tOverN * mean[p] + oneOverN * img[p];
                u[p] = img[p] - mean[p];
             }
-
-            amnesic( n++, &w1, &w2 );
-
-            printf( "%d: len(u) = %f, w1 = %f, w2 = %f\n", i, vecLen( u, IMAGE_SIZE ), w1, w2 );
             
-            for ( unsigned comp = 0; comp <= min( i - 1, k ); comp++ ) {
+            amnesic( n++, &w1, &w2 );
+            
+            for ( unsigned comp = 0; comp < min( i, k ); comp++ ) {
 
-               if ( comp == i - 1 ) {
+               if ( v[c].size() == comp ) {
                   double* vi = new double[IMAGE_SIZE];
                   for ( int j = 0; j < IMAGE_SIZE; j++ ) {
                      vi[j] = u[j];
                   }
+
                   v[c].push_back( vi );
                } else {
+                  
                   double lvi = vecLen( v[c][comp], IMAGE_SIZE );
-
+                  
                   double yi = 0;
                   for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                     yi += u[j] * ( v[c][comp][j] / lvi );
+                     yi += u[j] * v[c][comp][j] / lvi;
                   }
 
                   for ( int j = 0; j < IMAGE_SIZE; j++ ) {
                      // Update current principal component estimate
-                     v[c][comp][j] = w1 * v[c][comp][j] + w2 * yi * u[j];
+                     v[c][comp][j] = w1 * v[c][comp][j] + w2 * yi;
                   }
 
                   lvi = vecLen( v[c][comp], IMAGE_SIZE ); // Update norm(v[i])
+
                   for ( int j = 0; j < IMAGE_SIZE; j++ ) {
                      // Update residual for next component
-                     u[j] = u[j] - yi * (v[c][comp][j] / lvi);
+                     u[j] = u[j] - yi * v[c][comp][j] / lvi;
                   }
                }
             }
          }
+      }
 
-         if ( e == 0 || e == settings.numEpochs - 1 ) {
-            dumpEigFaces( c + e, x, v[c] );
+      if ( e == 0 || e == settings.numEpochs - 1 ) {
+         for ( unsigned i = 0; i < training.numClasses(); i++ ) {
 
-            char x[IMAGE_SIZE];
-            char name[32];
-            sprintf( name, "meanout%d.raw", c );
-            ofstream meanOut( name, ios::binary );
-            scaleTo255( x, mean );
-            meanOut.write( x, IMAGE_SIZE );
-            meanOut.close();
+            dumpEigFaces( e * 10 + i, x, v[i] );
          }
       }
    }
 
+   ofstream meanout( "meanout.raw" );
+   scaleTo255( x, mean );
+   meanout.write( x, IMAGE_SIZE );
+   meanout.close();
+   
    // Euclidean testing
    if ( settings.testingFile != NULL ) {
       Listing testing;
@@ -184,88 +190,6 @@ int main( int argc, char** argv ) {
 
       printf( "Classifier was right %.2f of the time\n", (float)numRight / (float)total );
    }
-   
-/*
-   char* x    = new char[IMAGE_SIZE];
-   int* mean  = new int[IMAGE_SIZE];
-   int* u     = new int[IMAGE_SIZE];
-
-   vector<int*> v; // Holds our eigen vectors
-   unsigned k = 1;
-
-   vector<char*>* clazz = training.getClass( 1 );
-
-   ifstream current( clazz->at( 0 ), ios::binary );
-   current.read( x, IMAGE_SIZE );
-   current.close();
-
-   for ( int i = 0; i < IMAGE_SIZE; i++ ) {
-      mean[i] = (int)x[i];
-   }
-   
-   int n = 2;
-   float w1 = 0;
-   float w2 = 0;
-
-   for ( int e = 0; e < settings.numEpochs; e++ ) {
-      for ( unsigned t = 0; t < clazz->size(); t++ ) {
-         current.open( clazz->at( t ), ios::binary );
-         current.read( x, IMAGE_SIZE );
-
-         float tOverN = ( (float)( t ) / (float)( t + 1 ) );
-         float oneOverN = ( 1.0f / (float)( t + 1 ) );
-         for ( int i = 0; i < IMAGE_SIZE; i++ ) {
-            mean[i] = tOverN * mean[i] + oneOverN * x[i];
-            u[i] = x[i] - mean[i];
-         }
-
-         amnesic( n++, &w1, &w2 );
-
-         for ( unsigned i = 0; i <= min( t, k ); i++ ) {
-
-            if ( i == t ) {
-               int* vi = new int[IMAGE_SIZE];
-               for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                  vi[j] = u[j];
-               }
-               v.push_back( vi );
-               k++;
-            } else {
-               float lvi = vecLen( v[i], IMAGE_SIZE );
-
-               int yi = 0;
-               for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                  yi += u[j] * ( v[i][j] / lvi );
-               }
-               
-               for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                  // Update current principal component estimate
-                  v[i][j] = w1 * v[i][j] + w2 * yi * u[j];
-               }
-
-               lvi = vecLen( v[i], IMAGE_SIZE ); // Update norm(v[i])
-               for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                  // Update residual for next component
-                  u[j] = u[j] - yi * (v[i][j] / lvi);
-               }
-            }
-         }
-      }
-
-      current.close();
-      
-      if ( e == 0 ) {
-         dumpEigFaces( e, x, v );
-      }
-   }
-
-   dumpEigFaces( settings.numEpochs, x, v );
-
-   ofstream meanOut( "meanout.raw", ios::binary );
-   scaleTo255( x, mean );
-   meanOut.write( x, IMAGE_SIZE );
-   meanOut.close();
-*/
 
    return 0;
 }
