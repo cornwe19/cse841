@@ -173,31 +173,51 @@ int main( int argc, char** argv ) {
       int numRight = 0;
       int total = 0;
 
-      /* TODO: load database and compare for testing phase
-      for ( unsigned t = 0; t < testing.size(); t++ ) {
-         Image test( testing[t] );
-         double leastDistance = DBL_MAX;
+      char mean[IMAGE_SIZE];
+      double u[IMAGE_SIZE];
+      char t[IMAGE_SIZE];
 
-         for ( unsigned i = 0; i < training.size(); i++ ) {
-            Image *current = new Image( training[i] );
-            double dist = test.euclideanDistanceTo( current );
+      for ( unsigned i = 0; i < testing.size(); i++ ) {
+         Image test( testing[i] );
+         double leastDistance = DBL_MAX;
+         char matchedClass[CLASS_MAX];
+
+         ifstream db( settings.networkFile );
+         db.read( mean, IMAGE_SIZE );
+
+         for ( unsigned j = 0; j < IMAGE_SIZE; j++ ) {
+            u[j] = test[j] - (double)mean[j];
+         }
+
+         db.ignore( 1 ); // skip line break
+
+         char className[CLASS_MAX];
+         while ( db >> className ) {
+            db.ignore( 1 ); // skip line break
+
+            db.read( t, IMAGE_SIZE );
+
+            // Compute euclidean dist between scatter and test vector
+            double dist = 0;
+            for ( unsigned j = 0; j < IMAGE_SIZE; j++ ) {
+               dist += pow( (double)t[j] - u[j], 2 );
+            }
+            dist = sqrt( dist );
             
             if ( dist < leastDistance ) {
-               if ( test.bestMatch != NULL ) {
-                  delete test.bestMatch;
-               }
-
                leastDistance = dist;
-               test.bestMatch = current;
+               
+               strcpy( matchedClass, className );
             }
          }
 
-         if ( !strcmp( test.bestMatch->getClassName(), test.getClassName() ) ) {
+         if ( !strcmp( test.getClassName(), matchedClass ) ) {
             numRight++;
          }
          total++;
+
+         printf( "%s matched %s\n", test.getClassName(), matchedClass );
       }
-      */
 
       printf( "Classifier was right %.2f of the time\n", (float)numRight / (float)total );
    }

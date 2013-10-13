@@ -17,7 +17,7 @@ public:
       listingFile = NULL;
       networkFile = NULL;
       outputFile  = NULL;
-      numEpochs   = 1;
+      numEpochs   = 0;
    }
 
    void load( int argc, char** argv, char** error ) {

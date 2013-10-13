@@ -18,7 +18,7 @@ char* Image::parseClassName( char* fileName ) {
       startPos++; // Skip the '/'
    }
 
-   char* className = new char[32];
+   char* className = new char[CLASS_MAX];
    char* classPtr = className;
    for ( char* i = startPos; i != NULL ; i++ ) {
       if ( toupper( *i ) != *i ) {
@@ -38,7 +38,6 @@ Image::Image( char* fileName ) {
    _data = new double[IMAGE_SIZE];
 
    _className = parseClassName( fileName );
-   bestMatch = NULL;
 
    // Load in char data as a vector of doubles
    char scratch[IMAGE_SIZE];
@@ -54,14 +53,5 @@ Image::Image( char* fileName ) {
 Image::~Image() {
    delete [] _data;
    delete [] _className;
-}
-
-double Image::euclideanDistanceTo( Image* other ) {
-    double sum = 0;
-    for ( int i = 0; i < IMAGE_SIZE; i++ ) {
-       sum += pow( _data[i] - other->getData()[i], 2 );
-    }
-
-    return sqrt( sum );
 }
 
