@@ -16,6 +16,8 @@ public:
 
    double& operator[]( unsigned i ) { return _data[i]; }
 
+   static char* parseClassName( char *fileName );
+
    Image *bestMatch;
    
 private:

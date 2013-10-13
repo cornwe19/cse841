@@ -9,7 +9,7 @@
 
 using namespace std;
 
-char* parseClassName( char* fileName ) {
+char* Image::parseClassName( char* fileName ) {
    char* startPos = strrchr( fileName, '/' );
 
    if ( startPos == NULL ) {

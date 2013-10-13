@@ -2,6 +2,7 @@
 #define LISTING_H
 
 #include "settings.h"
+#include "image.h"
 #include <vector>
 
 #define FILE_NAME_MAX 256
@@ -14,6 +15,10 @@ using namespace std;
 struct imgClass_t {
    char** ptr;
    size_t size;
+
+   char* getName() {
+      return Image::parseClassName( ptr[0] );
+   }
 };
 
 class Listing {
