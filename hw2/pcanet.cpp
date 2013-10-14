@@ -37,9 +37,21 @@ double vecLen( double* vec, size_t size ) {
    return sqrt( sum );
 }
 
-void scaleTo255( char* dest, double* src ) {
-   for ( unsigned i = 0; i < IMAGE_SIZE; i++ ) {
-      dest[i] = ( 255 * ( ((long long)src[i] - LLONG_MIN) / (LLONG_MAX - LLONG_MIN) ) );
+void scaleTo255( char* dest, double* src, unsigned size ) {
+   double max = 0;
+   double min = DBL_MAX;
+
+   for ( unsigned i = 0; i < size; i++ ) {
+      if ( src[i] > max ) {
+         max = src[i];
+      }
+      if ( src[i] < min ) {
+         min = src[i];
+      }
+   }
+
+   for ( unsigned i = 0; i < size; i++ ) {
+      dest[i] = ( 255 * ( (src[i] - min) / (max - min) ) );
    }
 }
 
@@ -54,153 +66,188 @@ int main( int argc, char** argv ) {
        exit( 1 );
    }
 
+   // Ran out of time to calculate represented variance
+   const unsigned k = 100; 
+
+   ofstream out( settings.outputFile );
+
    // Training mode
    if ( settings.numEpochs > 0 ) {
       Listing training;
       training.load( settings.listingFile );
-     
-      printf( "Loaded %d training images\n", training.size() );
+    
+      out << "Read " << training.size() << " images" << endl;
+      out << "Database file '" << settings.networkFile << "'" << endl;
+      out << "Using " << k << " MEFs. Unknown represented variance" << endl;
 
       // Mean image
       double mean[IMAGE_SIZE];
       double u   [IMAGE_SIZE];
-      char   x   [IMAGE_SIZE];
+      char   x   [IMAGE_SIZE]; // Scratch buffer for conversion from double*
       
       int n = 2;
       double w1 = 0;
       double w2 = 0;
-      const unsigned k = 5;
 
-      vector<double*> v[training.numClasses()];
+      vector<double*> v;
 
       for ( int e = 0; e < settings.numEpochs; e++ ) {
-         for ( unsigned c = 0; c < training.numClasses(); c++ ) {
-            imgClass_t* clazz = training.classAt( c );
+         for ( unsigned i = 0; i < training.size(); i++ ) {
 
-            unsigned iterStart = 0;
-            if ( e == 0 && c == 0 ) {
-               Image init( clazz->ptr[0] );
+            if ( e == 0 && i == 0 ) {
+               Image init( training[0] );
                for ( int p = 0; p < IMAGE_SIZE; p++ ) {
                   mean[p] = init[p];
                }
 
-               iterStart = 1;
+               continue;
             }
 
-            for ( unsigned i = iterStart; i < clazz->size; i++ ) {
-               Image img( clazz->ptr[i] );
+            Image img( training[i] );
 
-               double tOverN = ( (double)( i ) / (double)( i + 1 ) );
-               double oneOverN = ( 1.0f / (double)( i + 1 ) );
-               for ( int p = 0; p < IMAGE_SIZE; p++ ) {
-                  mean[p] = tOverN * mean[p] + oneOverN * img[p];
-                  u[p] = img[p] - mean[p];
-               }
-               
-               amnesic( n++, &w1, &w2 );
-               
-               for ( unsigned comp = 0; comp < min( i, k ); comp++ ) {
+            double tOverN = ( (double)( n ) / (double)( n + 1 ) );
+            double oneOverN = ( 1.0f / (double)( n + 1 ) );
+            for ( int p = 0; p < IMAGE_SIZE; p++ ) {
+               mean[p] = tOverN * mean[p] + oneOverN * img[p];
+               u[p] = img[p] - mean[p];
+            }
+            
+            amnesic( n++, &w1, &w2 );
+            
+            for ( unsigned comp = 0; comp < min( i, k ); comp++ ) {
 
-                  if ( v[c].size() == comp ) {
-                     double* vi = new double[IMAGE_SIZE];
-                     for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                        vi[j] = u[j];
-                     }
+               if ( v.size() == comp ) {
+                  double* vi = new double[IMAGE_SIZE];
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     vi[j] = u[j];
+                  }
 
-                     v[c].push_back( vi );
-                  } else {
-                     
-                     double lvi = vecLen( v[c][comp], IMAGE_SIZE );
-                     
-                     double yi = 0;
-                     for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                        yi += u[j] * v[c][comp][j] / lvi;
-                     }
+                  v.push_back( vi );
+               } else {
+                  
+                  double lvi = vecLen( v[comp], IMAGE_SIZE );
+                  
+                  double yi = 0;
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     yi += u[j] * v[comp][j] / lvi;
+                  }
 
-                     for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                        // Update current principal component estimate
-                        v[c][comp][j] = w1 * v[c][comp][j] + w2 * yi;
-                     }
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     // Update current principal component estimate
+                     v[comp][j] = w1 * v[comp][j] + w2 * yi * u[j];
+                  }
 
-                     lvi = vecLen( v[c][comp], IMAGE_SIZE ); // Update norm(v[i])
+                  lvi = vecLen( v[comp], IMAGE_SIZE ); // Update norm(v[i])
 
-                     for ( int j = 0; j < IMAGE_SIZE; j++ ) {
-                        // Update residual for next component
-                        u[j] = u[j] - yi * v[c][comp][j] / lvi;
-                     }
+                  for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+                     // Update residual for next component
+                     u[j] = u[j] - yi * v[comp][j] / lvi;
                   }
                }
             }
          }
+      }
 
-         bool endOfTraining =  e == settings.numEpochs - 1;
-         if ( endOfTraining ) {
-            ofstream db( settings.networkFile, ios::binary );
-            scaleTo255( x, mean );
-            db.write( x, IMAGE_SIZE );
+      ofstream db( settings.networkFile, ios::binary );
+      scaleTo255( x, mean, IMAGE_SIZE );
+      db.write( x, IMAGE_SIZE );
 
-            db.put( '\n' );
+      db.put( '\n' );
 
-            ofstream meanout( "out/meanout.raw" );
-            scaleTo255( x, mean );
-            meanout.write( x, IMAGE_SIZE );
-            meanout.close();
+      ofstream meanout( "out/meanout.raw" );
+      meanout.write( x, IMAGE_SIZE );
+      meanout.close();
 
-            for ( unsigned i = 0; i < training.numClasses(); i++ ) {
-               for ( unsigned j = 0; j < v[i].size(); j++ ) {
-                  scaleTo255( x, v[i][j] );
+      out << "Mean filename: out/meanout.raw" << endl;
 
-                  char* className = training.classAt( i )->getName();
-                  db.write( className, strlen( className ) );
-                  db.put( '\n' );
-                  db.write( x, IMAGE_SIZE );
+      for ( unsigned j = 0; j < v.size(); j++ ) {
+         scaleTo255( x, v[j], IMAGE_SIZE );
 
-                  char outName[128];
-                  sprintf( outName, "out/%s-%d.raw", className, i );
-                  ofstream viOut( outName, ios::binary );
-                  viOut.write( x, IMAGE_SIZE );
-                  viOut.close();
-               }
+         db.write( x, IMAGE_SIZE );
+
+         char outName[128];
+         sprintf( outName, "out/mef-%d.raw", j );
+
+         out << "MEF " << j << " file: " << outName << endl;
+
+         ofstream viOut( outName, ios::binary );
+         viOut.write( x, IMAGE_SIZE );
+         viOut.close();
+      }
+
+      db.put( '\n' );
+
+      for ( unsigned j = 0; j < training.size(); j++ ) {
+         Image train( training[j] );
+         double proj[v.size()];
+         
+         for ( unsigned p = 0; p < v.size(); p++ ) {
+            proj[p] = 0;
+            for ( unsigned i = 0; i < IMAGE_SIZE; i++ ) {
+                proj[p] += ( train[i] - mean[i] ) * v[p][i];
             }
          }
+
+         scaleTo255( x, proj, v.size() );
+
+         db.write( train.getClassName(), strlen( train.getClassName() ) );
+         db.put( '\n' );
+         db.write( x, v.size() );
       }
+
+      db.close();
+      out.close();
    } 
    // Testing mode
    else {
       Listing testing;
       testing.load( settings.listingFile );
 
-      int numRight = 0;
-      int total = 0;
-
       char mean[IMAGE_SIZE];
-      double u[IMAGE_SIZE];
-      char t[IMAGE_SIZE];
+      char x[IMAGE_SIZE]; // scratch buffer
 
       for ( unsigned i = 0; i < testing.size(); i++ ) {
+         ifstream db( settings.networkFile );
+         db.read( mean, IMAGE_SIZE );
+
+         db.ignore( 1 ); // skip line break
+
+         vector<double*> v;
+         for ( unsigned e = 0; e < k; e++ ) {
+            double vi[IMAGE_SIZE];
+
+            db.read( x, IMAGE_SIZE );
+            for ( int j = 0; j < IMAGE_SIZE; j++ ) {
+               vi[j] = (double)x[j];
+            }
+
+            v.push_back( vi );
+         }
+         
+         db.ignore( 1 ); // skip line break
+
          Image test( testing[i] );
          double leastDistance = DBL_MAX;
          char matchedClass[CLASS_MAX];
 
-         ifstream db( settings.networkFile );
-         db.read( mean, IMAGE_SIZE );
-
-         for ( unsigned j = 0; j < IMAGE_SIZE; j++ ) {
-            u[j] = test[j] - (double)mean[j];
+         double u[v.size()];
+         for ( unsigned j = 0; j < v.size(); j++ ) {
+            u[j] = 0;
+            for ( int p = 0; p < IMAGE_SIZE; p++ ) {
+               u[j] += ( test[p] - (double)mean[p] ) * v[j][p];
+            }
          }
-
-         db.ignore( 1 ); // skip line break
 
          char className[CLASS_MAX];
          while ( db >> className ) {
             db.ignore( 1 ); // skip line break
 
-            db.read( t, IMAGE_SIZE );
+            db.read( x, k );
 
             // Compute euclidean dist between scatter and test vector
             double dist = 0;
-            for ( unsigned j = 0; j < IMAGE_SIZE; j++ ) {
-               dist += pow( (double)t[j] - u[j], 2 );
+            for ( unsigned j = 0; j < v.size(); j++ ) {
+               dist += pow( (double)x[j] - u[j], 2 );
             }
             dist = sqrt( dist );
             
@@ -211,15 +258,10 @@ int main( int argc, char** argv ) {
             }
          }
 
-         if ( !strcmp( test.getClassName(), matchedClass ) ) {
-            numRight++;
-         }
-         total++;
+         out << "Matched " << test.getFileName() << " to " << className << " with distance " << leastDistance << endl;
 
-         printf( "%s matched %s\n", test.getClassName(), matchedClass );
+         db.close();
       }
-
-      printf( "Classifier was right %.2f of the time\n", (float)numRight / (float)total );
    }
 
    return 0;
