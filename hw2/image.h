@@ -1,3 +1,9 @@
+/**
+* Dennis Cornwell
+* Image class used as a helper to wrap loading raw pgm files
+*  - Supplies class and file names as well as file data
+**/
+
 #ifndef IMAGE_H
 #define IMAGE_H
 

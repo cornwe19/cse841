@@ -1,3 +1,9 @@
+/**
+* Dennis Cornwell
+* Settings class used for loading/caching program cmd arguments
+*  - Reads cmd arguments and helps determine their validity
+**/
+
 #ifndef SETTINGS_H
 #define SETTINGS_H
 

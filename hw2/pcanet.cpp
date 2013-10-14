@@ -1,3 +1,9 @@
+/**
+* Dennis Cornwell
+* ICCPCA net implementation with 2 distinct states, 1 for training and the other for testing
+*  - Generates a series of MEF eigen vector images, a mean image, a database file and an output report
+**/
+
 #include <stdio.h>
 #include <fstream>
 #include <cmath>

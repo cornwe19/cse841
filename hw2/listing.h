@@ -1,3 +1,9 @@
+/**
+* Dennis Cornwell
+* Listing class to help load listings of files
+*  - Loads listing into a flat list as well as a list of filenames grouped by class
+**/
+
 #ifndef LISTING_H
 #define LISTING_H
 
