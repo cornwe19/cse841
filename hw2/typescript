@@ -1,0 +1,7 @@
+Script started on Sun Oct 13 21:23:18 2013
+<129 arctic:~/cse841/hw2 >./pcanet -f ~cse841/web/class/HW2/841-440-Fall13/traininglist.txt -d out/training.db -o out/train.txt -l 20
+<130 arctic:~/cse841/hw2 >./pcanet -f ~cse841/web/class/HW2/841-440-Fall13/testinglist.txt -d out/training.db -o out/test.txt
+<131 arctic:~/cse841/hw2 >exit
+exit
+
+Script done on Sun Oct 13 21:24:18 2013
