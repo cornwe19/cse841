@@ -10,6 +10,7 @@
 #include <climits>
 #include <numeric>
 #include <cfloat>
+#include <string.h>
 #include "settings.h"
 #include "listing.h"
 #include "image.h"

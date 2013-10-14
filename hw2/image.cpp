@@ -24,7 +24,7 @@ char* Image::parseClassName( char* fileName ) {
       // Class is followed by a number or a capital lettered emotion and a number
       // Checks formats like AdamTa1.raw as well as benH1.raw.face
       if ( isdigit( *i ) || ( toupper( *i ) == *i && isdigit( *(i+1) ) ) ) {
-         *classPtr = NULL;
+         *classPtr = '\0';
          break;
       } else {
          *classPtr = *i;
