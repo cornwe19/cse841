@@ -74,7 +74,7 @@ int main( int argc, char** argv ) {
    }
 
    // Ran out of time to calculate represented variance
-   const unsigned k = 100; 
+   const unsigned k = 63; 
 
    ofstream out( settings.outputFile );
 
@@ -213,6 +213,8 @@ int main( int argc, char** argv ) {
       char mean[IMAGE_SIZE];
       char x[IMAGE_SIZE]; // scratch buffer
 
+      int numCorrect = 0;
+
       for ( unsigned i = 0; i < testing.size(); i++ ) {
          ifstream db( settings.networkFile );
          db.read( mean, IMAGE_SIZE );
@@ -265,10 +267,17 @@ int main( int argc, char** argv ) {
             }
          }
 
+         if ( !strcmp( test.getClassName(), className ) ) {
+            numCorrect++;
+            printf( "Matched %s with %s", test.getFileName(), className );
+         }
+
          out << "Matched " << test.getFileName() << " to " << className << " with distance " << leastDistance << endl;
 
          db.close();
       }
+      printf( "num total %d\n", testing.size() );
+      printf( "num correct %d\n", numCorrect );
    }
 
    return 0;
