@@ -25,6 +25,7 @@ public:
       networkFile = NULL;
       outputFile  = NULL;
       numEpochs   = 0;
+      numYNeurons = 0;
    }
 
    void load( int argc, char** argv, char** error ) {

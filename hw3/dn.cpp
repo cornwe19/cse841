@@ -14,8 +14,10 @@
 #include "settings.h"
 #include "listing.h"
 #include "image.h"
+#include "y_area.h"
 
 #define IMAGE_SIZE 64*88
+#define SAMPLE_DURATION 3
 
 using namespace std;
 
@@ -42,15 +44,20 @@ int main( int argc, char** argv ) {
 
       char   scratch[IMAGE_SIZE]; // Scratch buffer for conversion from double*
       double X[IMAGE_SIZE];
-      double Y[settings.numYNeurons];
-      double Z[training.numClasses()];
+      double Z[training.numClasses() + 1];
+      YArea  Y( settings.numYNeurons, X, IMAGE_SIZE, Z, training.numClasses() + 1 );
 
       int t = 1;
-      double w1 = 0;
-      double w2 = 0;
 
-      for ( unsigned epoch = 0; epoch < settings.numEpochs; epoch++ ) {
-         // Do DN things.
+      for ( unsigned image = 0; image < training.size(); image++ ) {
+         
+         for ( unsigned background = 0; background < SAMPLE_DURATION; background++ ) {
+            
+         }
+         
+         for ( unsigned sample = 0; sample < SAMPLE_DURATION; sample++ ) {
+            
+         }
       }
 
       out.close();
