@@ -19,6 +19,11 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
    randomizeBank( _xNeurons, _xSize );
    randomizeBank( _zNeurons, _zSize );
 
+   _neuronalAges = new double[numNeurons];
+   Vectors::fill( _neuronalAges, 1, numNeurons );
+
+   _sampleX = new double[_xSize];
+   _sampleZ = new double[_zSize];
 }
 
 YArea::~YArea() {
@@ -30,6 +35,10 @@ YArea::~YArea() {
    delete [] _xNeurons;
    delete [] _zNeurons;
 
+   delete [] _neuronalAges;
+   
+   delete [] _sampleX;
+   delete [] _sampleZ;
 }
 
 double** YArea::allocNeuronBank( unsigned neuronSize ) {
@@ -57,17 +66,13 @@ void YArea::randomizeBank( double **neuronBank, unsigned size ) {
 void YArea::computePreresponse() {
    // Find matching neuron and update it 
    double bestFit = 0;
-   double localX[_xSize], sampleX[_xSize];
-   double localZ[_zSize], sampleZ[_zSize];
 
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      Vectors::norm( localX, _x, _xSize );
-      Vectors::norm( sampleX, _xNeurons[i], _xSize );
-      double xFit = Vectors::dot( localX, sampleX, _xSize );
+      Vectors::copy( _sampleX, _x, _xSize );
+      Vectors::copy( _sampleZ, _z, _zSize );
 
-      Vectors::norm( localZ, _z, _zSize );
-      Vectors::norm( sampleZ, _zNeurons[i], _zSize );
-      double zFit = Vectors::dot( localZ, sampleZ, _zSize );
+      double xFit = Vectors::dot( _xNeurons[i], _sampleX, _xSize );
+      double zFit = Vectors::dot( _zNeurons[i], _sampleZ, _zSize );
 
       if ( xFit + zFit > bestFit ) {
          bestFit = xFit + zFit;
@@ -75,8 +80,27 @@ void YArea::computePreresponse() {
       }
    }
 
-   printf( "Found best match %d(%f)\n", _neuronalMatch, bestFit );
+   printf( "Found best match %d (%f)\n", _neuronalMatch, bestFit );
 }
 
 void YArea::update() {
+   // Update weight vectors for matched neuron
+   double age = _neuronalAges[_neuronalMatch]++;
+   double w1 = ( age - 1.0 ) / 1.0;
+   double w2 = 1.0 / age;
+
+   double* xWeights = _xNeurons[_neuronalMatch];
+   double* zWeights = _zNeurons[_neuronalMatch];
+
+   for ( unsigned i = 0; i < _xSize; i++ ) {
+      xWeights[i] = w1 * xWeights[i] + w2 * _sampleX[i];
+   }
+
+   for ( unsigned i = 0; i < _zSize; i++ ) {
+      zWeights[i] = w1 * zWeights[i] + w2 * _sampleZ[i];
+   }
+
+   // Re-normalize weights once we've updated
+   Vectors::norm( xWeights, xWeights, _xSize );
+   Vectors::norm( zWeights, zWeights, _zSize );
 }

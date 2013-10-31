@@ -20,7 +20,13 @@ private:
    double *_z;
    double **_zNeurons;
 
+   // Temporary fields for each preresponse/update
    unsigned _neuronalMatch;
+   double*  _sampleX;
+   double*  _sampleZ;
+   // \Temporary fields
+
+   double  *_neuronalAges;
 
    double** allocNeuronBank( unsigned neuronSize );
    void     randomizeBank( double **neuronBank, unsigned size );

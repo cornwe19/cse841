@@ -68,7 +68,7 @@ int main( int argc, char** argv ) {
          // }
 
          Image current( training[image] );
-         Vectors::copy( X, current.getData(), IMAGE_SIZE );
+         Vectors::norm( X, current.getData(), IMAGE_SIZE );
          if ( strcmp( current.getClassName(), currentClass ) ) {
             Z[classId] = 0;
             Z[++classId] = 1;
@@ -83,6 +83,7 @@ int main( int argc, char** argv ) {
          // Skip presenting same image multiple times for now
          //for ( unsigned sample = 0; sample < SAMPLE_DURATION; sample++ ) {
             Y.computePreresponse();
+            Y.update();
          //}
       }
 
