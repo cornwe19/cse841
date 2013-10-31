@@ -15,12 +15,10 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
    _xNeurons = allocNeuronBank( xSize );
    _zNeurons = allocNeuronBank( zSize );
 
-
    srand( time( NULL ) );
    randomizeBank( _xNeurons, _xSize );
    randomizeBank( _zNeurons, _zSize );
 
-   _response = new double[zSize];
 }
 
 YArea::~YArea() {
@@ -32,7 +30,6 @@ YArea::~YArea() {
    delete [] _xNeurons;
    delete [] _zNeurons;
 
-   delete [] _response;
 }
 
 double** YArea::allocNeuronBank( unsigned neuronSize ) {
@@ -82,5 +79,4 @@ void YArea::computePreresponse() {
 }
 
 void YArea::update() {
-   // Copy new values from matching neuron into _response
 }

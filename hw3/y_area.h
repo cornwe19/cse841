@@ -6,7 +6,6 @@ public:
    YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize );
    ~YArea();
 
-   double* response() { return _response; }
    void    computePreresponse();
    void    update();
 
@@ -21,10 +20,7 @@ private:
    double *_z;
    double **_zNeurons;
 
-   // Pointer to most recent preresponse
-   // to be copied into response during an update
    unsigned _neuronalMatch;
-   double *_response;
 
    double** allocNeuronBank( unsigned neuronSize );
    void     randomizeBank( double **neuronBank, unsigned size );
