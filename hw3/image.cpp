@@ -42,9 +42,9 @@ Image::Image( char* fileName ) {
    _className = parseClassName( fileName );
 
    // Load in char data as a vector of doubles
-   char scratch[IMAGE_SIZE];
+   unsigned char scratch[IMAGE_SIZE];
    ifstream image( fileName, ios::binary );
-   image.read( scratch, IMAGE_SIZE );
+   image.read( (char*) &scratch[0], IMAGE_SIZE );
    image.close();
 
    for ( int i = 0; i < IMAGE_SIZE; i++ ) {
