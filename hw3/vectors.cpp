@@ -3,10 +3,7 @@
 #include <cfloat>
 
 double Vectors::length( double *vec, unsigned size ) {
-   double sum = 0;
-   for ( unsigned i = 0; i < size; i++ ) {
-      sum += ( vec[i] * vec[i] );
-   }
+   double sum = dot( vec, vec, size );
 
    return sqrt( sum );
 }
@@ -34,5 +31,27 @@ void Vectors::scaleTo255( char *dst, double *src, unsigned size ) {
 
    for ( unsigned i = 0; i < size; i++ ) {
       dst[i] = ( 255 * ( (src[i] - min) / (max - min) ) );
+   }
+}
+
+double Vectors::dot( double *a, double *b, unsigned size ) {
+   double result = 0;
+
+   for ( unsigned i = 0; i < size; i++ ) {
+      result += a[i] * b[i];
+   }
+
+   return result;
+}
+
+void Vectors::copy( double *dst, double* src, unsigned size ) {
+   for ( unsigned i = 0; i < size; i++ ) {
+      dst[i] = src[i];
+   }
+}
+
+void Vectors::fill( double *dst, double value, unsigned size ) {
+   for ( unsigned i = 0; i < size; i++ ) {
+      dst[i] = value;
    }
 }
