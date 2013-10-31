@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <time.h>
 
+double  imageDataGenerator() { return rand() % 255; }
+double  classDataGenerator() { return ( (double)rand() / RAND_MAX ); }
+
 YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize ) {
    _numNeurons = numNeurons;
    _xSize = xSize;
@@ -16,8 +19,8 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
    _zNeurons = allocNeuronBank( zSize );
 
    srand( time( NULL ) );
-   randomizeBank( _xNeurons, _xSize );
-   randomizeBank( _zNeurons, _zSize );
+   randomizeBank( _xNeurons, imageDataGenerator, _xSize );
+   randomizeBank( _zNeurons, classDataGenerator, _zSize );
 
    _neuronalAges = new double[numNeurons];
    Vectors::fill( _neuronalAges, 1, numNeurons );
@@ -51,10 +54,10 @@ double** YArea::allocNeuronBank( unsigned neuronSize ) {
    return bank;
 }
 
-void YArea::randomizeBank( double **neuronBank, unsigned size ) {
+void YArea::randomizeBank( double **neuronBank, double (*randGen)(), unsigned size ) {
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
       for ( unsigned j = 0; j < size; j++ ) {
-         neuronBank[i][j] = ( rand() % 255 );
+         neuronBank[i][j] = (*randGen)();
       }
    }
 

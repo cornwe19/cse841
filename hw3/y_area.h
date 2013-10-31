@@ -29,7 +29,7 @@ private:
    double  *_neuronalAges;
 
    double** allocNeuronBank( unsigned neuronSize );
-   void     randomizeBank( double **neuronBank, unsigned size );
+   void     randomizeBank( double **neuronBank, double (*randGen)(), unsigned size );
 };
 
 #endif
