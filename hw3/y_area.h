@@ -23,10 +23,11 @@ private:
 
    // Pointer to most recent preresponse
    // to be copied into response during an update
-   double *_preresponse;
+   unsigned _neuronalMatch;
    double *_response;
 
    double** allocNeuronBank( unsigned neuronSize );
+   void     randomizeBank( double **neuronBank, unsigned size );
 };
 
 #endif

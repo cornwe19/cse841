@@ -15,6 +15,7 @@
 #include "listing.h"
 #include "image.h"
 #include "y_area.h"
+#include "vectors.h"
 
 #define IMAGE_SIZE 64*88
 #define SAMPLE_DURATION 3
@@ -42,22 +43,47 @@ int main( int argc, char** argv ) {
       out << "Read " << training.size() << " images" << endl;
       out << "Database file '" << settings.networkFile << "'" << endl;
 
-      char   scratch[IMAGE_SIZE]; // Scratch buffer for conversion from double*
-      double X[IMAGE_SIZE];
-      double Z[training.numClasses() + 1];
-      YArea  Y( settings.numYNeurons, X, IMAGE_SIZE, Z, training.numClasses() + 1 );
+      double  background[IMAGE_SIZE];
+      // Init background to 1's
+      Vectors::fill( background, 1, IMAGE_SIZE );
+
+      const unsigned zSize = training.numClasses() + 1;
+
+      double  X[IMAGE_SIZE];
+      double  Z[zSize];
+      YArea   Y( settings.numYNeurons, X, IMAGE_SIZE, Z, zSize );
+
+      Vectors::fill( Z, 0, zSize );
+
+      char currentClass[CLASS_MAX];
+      int  classId = 0;
 
       int t = 1;
-
       for ( unsigned image = 0; image < training.size(); image++ ) {
-         
-         for ( unsigned background = 0; background < SAMPLE_DURATION; background++ ) {
-            
+        
+         // Skip background images for now
+         // Vectors::copy( X, background, IMAGE_SIZE );
+         // for ( unsigned bg = 0; bg < SAMPLE_DURATION; bg++ ) {
+         //    Y.computePreresponse();
+         // }
+
+         Image current( training[image] );
+         Vectors::copy( X, current.getData(), IMAGE_SIZE );
+         if ( strcmp( current.getClassName(), currentClass ) ) {
+            Z[classId] = 0;
+            Z[++classId] = 1;
+            strcpy( currentClass, current.getClassName() );
+
+            for ( unsigned i = 0; i < zSize; i++ ) {
+               printf( "%.0f ", Z[i] );
+            }
+            printf( "\n" );
          }
-         
-         for ( unsigned sample = 0; sample < SAMPLE_DURATION; sample++ ) {
-            
-         }
+
+         // Skip presenting same image multiple times for now
+         //for ( unsigned sample = 0; sample < SAMPLE_DURATION; sample++ ) {
+            Y.computePreresponse();
+         //}
       }
 
       out.close();
