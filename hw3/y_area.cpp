@@ -109,6 +109,9 @@ void YArea::update() {
    // Re-normalize weights once we've updated
    Vectors::norm( xWeights, xWeights, _xSize );
    Vectors::norm( zWeights, zWeights, _zSize );
+
+   // Update pointer to new weight vector for Z to monitor
+   response = zWeights;
 }
 
 void YArea::writeToDatabase( std::ofstream* database ) {
