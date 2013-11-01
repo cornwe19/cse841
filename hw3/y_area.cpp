@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <fstream>
 
 double  imageDataGenerator() { return rand() % 255; }
 double  classDataGenerator() { return ( (double)rand() / RAND_MAX ); }
@@ -107,3 +108,18 @@ void YArea::update() {
    Vectors::norm( xWeights, xWeights, _xSize );
    Vectors::norm( zWeights, zWeights, _zSize );
 }
+
+void YArea::writeToDatabase( std::ofstream* database ) {
+   database->write( reinterpret_cast<char*>( &_numNeurons ), sizeof(unsigned) );
+
+   database->write( reinterpret_cast<char*>( &_xSize ), sizeof(unsigned) );
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      database->write( reinterpret_cast<char*>( _xNeurons[i] ), sizeof(double) * _xSize );
+   }
+
+   database->write( reinterpret_cast<char*>( &_zSize ), sizeof(unsigned) );
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      database->write( reinterpret_cast<char*>( _zNeurons[i] ), sizeof(double) * _zSize );
+   }
+}
+

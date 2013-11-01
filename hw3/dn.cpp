@@ -58,6 +58,10 @@ int main( int argc, char** argv ) {
       char currentClass[CLASS_MAX];
       int  classId = 0;
 
+      ofstream database( settings.networkFile );
+      unsigned numClasses = training.numClasses();
+      database.write( reinterpret_cast<char*>( &numClasses ), sizeof(unsigned) );
+
       int t = 1;
       for ( unsigned image = 0; image < training.size(); image++ ) {
         
@@ -78,6 +82,9 @@ int main( int argc, char** argv ) {
                printf( "%.0f ", Z[i] );
             }
             printf( "\n" );
+
+            // Write out class mappings as we find them
+            database.write( currentClass, strlen( currentClass ) + 1 ); // Write out the null terminator as well
          }
 
          // Skip presenting same image multiple times for now
@@ -87,13 +94,32 @@ int main( int argc, char** argv ) {
          //}
       }
 
+      
+      Y.writeToDatabase( &database );
+
+      database.close();
+
       out.close();
    } 
    // Testing mode
    else {
       Listing testing;
       testing.load( settings.listingFile );
-      
+
+      ifstream database( settings.networkFile );
+
+      unsigned numClasses; 
+      database.read( (char*) &numClasses, sizeof(unsigned) );
+
+      char classes[numClasses][CLASS_MAX];
+      for ( unsigned i = 0; i < numClasses; i++ ) {
+         database.get( classes[i], CLASS_MAX, '\0' );
+         database.ignore();
+         printf( "Loaded %s\n", classes[i], strlen( classes[i] ) );
+      }
+
+      database.close();
+
       // Do DN testing.
    }
 

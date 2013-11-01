@@ -1,6 +1,8 @@
 #ifndef Y_AREA_H
 #define Y_AREA_H
 
+#include <fstream>
+
 class YArea {
 public:
    YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize );
@@ -8,6 +10,8 @@ public:
 
    void    computePreresponse();
    void    update();
+
+   void    writeToDatabase( std::ofstream* database );
 
 private:
    unsigned _numNeurons;
