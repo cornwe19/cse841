@@ -1,4 +1,4 @@
-all: vectors y_area listing image dn
+all: vectors y_area z_area listing image dn
 
 dn: dn.cpp settings.h listing image y_area vectors
 	g++ dn.cpp -Wall bin/* -o dn
@@ -11,6 +11,9 @@ image: mkdirs image.h image.cpp
 
 y_area: mkdirs y_area.h y_area.cpp
 	g++ -c y_area.cpp -g -Wall -o bin/y_area.o
+
+z_area: mkdirs z_area.h z_area.cpp
+	g++ -c z_area.cpp -g -Wall -o bin/z_area.o
 
 vectors: mkdirs vectors.h vectors.cpp
 	g++ -c vectors.cpp -g -Wall -o bin/vectors.o

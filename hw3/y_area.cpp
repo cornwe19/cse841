@@ -22,6 +22,8 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
    srand( time( NULL ) );
    randomizeBank( _xNeurons, imageDataGenerator, _xSize );
    randomizeBank( _zNeurons, classDataGenerator, _zSize );
+   
+   response = _zNeurons[0];
 
    _neuronalAges = new double[numNeurons];
    Vectors::fill( _neuronalAges, 1, numNeurons );
@@ -122,8 +124,11 @@ void YArea::writeToDatabase( std::ofstream* database ) {
    }
 }
 
-YArea::YArea( std::ifstream* database ) {
+YArea::YArea( std::ifstream* database, double* x, double* z ) {
    database->read( (char*) &_numNeurons, sizeof(unsigned) );
+
+   _x = x;
+   _z = z;
 
    database->read( (char*) &_xSize, sizeof(unsigned) );
    _xNeurons = allocNeuronBank( _xSize );
@@ -136,5 +141,9 @@ YArea::YArea( std::ifstream* database ) {
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
       database->read( (char*) _zNeurons[i], sizeof(double) * _zSize );
    }
+
+   _neuronalAges = new double[_numNeurons];
+   _sampleX = new double[_xSize];
+   _sampleZ = new double[_zSize];
 }
 
