@@ -6,6 +6,7 @@
 class YArea {
 public:
    YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize );
+   YArea( std::ifstream* database );
    ~YArea();
 
    void    computePreresponse();

@@ -110,16 +110,31 @@ void YArea::update() {
 }
 
 void YArea::writeToDatabase( std::ofstream* database ) {
-   database->write( reinterpret_cast<char*>( &_numNeurons ), sizeof(unsigned) );
-
-   database->write( reinterpret_cast<char*>( &_xSize ), sizeof(unsigned) );
+   database->write( (char*) &_numNeurons, sizeof(unsigned) );
+   database->write( (char*) &_xSize, sizeof(unsigned) );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      database->write( reinterpret_cast<char*>( _xNeurons[i] ), sizeof(double) * _xSize );
+      database->write( (char*) _xNeurons[i], sizeof(double) * _xSize );
    }
 
-   database->write( reinterpret_cast<char*>( &_zSize ), sizeof(unsigned) );
+   database->write( (char*) &_zSize, sizeof(unsigned) );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      database->write( reinterpret_cast<char*>( _zNeurons[i] ), sizeof(double) * _zSize );
+      database->write( (char*) _zNeurons[i], sizeof(double) * _zSize );
+   }
+}
+
+YArea::YArea( std::ifstream* database ) {
+   database->read( (char*) &_numNeurons, sizeof(unsigned) );
+
+   database->read( (char*) &_xSize, sizeof(unsigned) );
+   _xNeurons = allocNeuronBank( _xSize );
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      database->read( (char*) _xNeurons[i], sizeof(double) * _xSize );
+   }
+
+   database->read( (char*) &_zSize, sizeof(unsigned) );
+   _zNeurons = allocNeuronBank( _zSize );
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      database->read( (char*) _zNeurons[i], sizeof(double) * _zSize );
    }
 }
 

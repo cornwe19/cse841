@@ -60,7 +60,7 @@ int main( int argc, char** argv ) {
 
       ofstream database( settings.networkFile );
       unsigned numClasses = training.numClasses();
-      database.write( reinterpret_cast<char*>( &numClasses ), sizeof(unsigned) );
+      database.write( (char*) &numClasses, sizeof(unsigned) );
 
       int t = 1;
       for ( unsigned image = 0; image < training.size(); image++ ) {
@@ -115,8 +115,10 @@ int main( int argc, char** argv ) {
       for ( unsigned i = 0; i < numClasses; i++ ) {
          database.get( classes[i], CLASS_MAX, '\0' );
          database.ignore();
-         printf( "Loaded %s\n", classes[i], strlen( classes[i] ) );
+         printf( "Loaded %s\n", classes[i] );
       }
+
+      YArea Y( &database );
 
       database.close();
 
