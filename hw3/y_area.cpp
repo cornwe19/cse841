@@ -86,7 +86,7 @@ void YArea::computePreresponse() {
       }
    }
 
-   printf( "Found best match %d (%f)\n", _neuronalMatch, bestFit );
+   printf( "Y: Found best match %d (%f)\n", _neuronalMatch, bestFit );
 }
 
 void YArea::update() {
@@ -148,5 +148,7 @@ YArea::YArea( std::ifstream* database, double* x, double* z ) {
    _neuronalAges = new double[_numNeurons];
    _sampleX = new double[_xSize];
    _sampleZ = new double[_zSize];
+
+   response = _zNeurons[0];
 }
 

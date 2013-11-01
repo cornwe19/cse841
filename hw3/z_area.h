@@ -10,6 +10,11 @@ public:
 
    double* response;
 
+   bool computePreresponse();
+   void update();
+
+   void printResponse();
+
 private:
    unsigned _numNeurons;
 

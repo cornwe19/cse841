@@ -131,8 +131,15 @@ int main( int argc, char** argv ) {
             Vectors::norm( X, current.getData(), IMAGE_SIZE );
 
             Y.computePreresponse();
+            if ( !Z.computePreresponse() ) {
+               fprintf( stderr, "Forgot to hook up _y area\n" );
+               exit( 1 );
+            }
 
             Y.update();
+            Z.update();
+
+            
          }
       }
    }

@@ -1,4 +1,6 @@
 #include "z_area.h"
+#include "vectors.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 ZArea::ZArea( unsigned numNeurons ) {
@@ -41,4 +43,39 @@ double** ZArea::allocNeuronBank() {
    }
 
    return Z;
+}
+
+bool ZArea::computePreresponse() {
+   if ( _y == NULL ) {
+      return false;
+   }
+   
+   double bestFit = 0;
+
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      Vectors::copy( _sampleY, _y, _numNeurons );
+      
+      double yFit = Vectors::dot( _neurons[i], _sampleY, _numNeurons );
+
+      if ( yFit > bestFit ) {
+         bestFit = yFit;
+         _neuronalMatch = i;
+      }
+   }
+
+   printf( "Z: Found best match %d (%f)\n", _neuronalMatch, bestFit );
+
+   return true;
+}
+
+// Since Z doesn't really 'learn', just store out the neuron we found
+void ZArea::update() {
+   response = _neurons[_neuronalMatch];
+}
+
+void ZArea::printResponse() {
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      printf( "%.0f ", response[i] );
+   }
+   printf( "\n" );
 }
