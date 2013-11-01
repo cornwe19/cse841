@@ -15,6 +15,7 @@
 #include "listing.h"
 #include "image.h"
 #include "y_area.h"
+#include "z_area.h"
 #include "vectors.h"
 
 #define IMAGE_SIZE 64*88
@@ -115,14 +116,25 @@ int main( int argc, char** argv ) {
       for ( unsigned i = 0; i < numClasses; i++ ) {
          database.get( classes[i], CLASS_MAX, '\0' );
          database.ignore();
-         printf( "Loaded %s\n", classes[i] );
       }
 
-      YArea Y( &database );
+      double X[IMAGE_SIZE];
+      ZArea  Z( numClasses + 1 );
+      YArea  Y( &database, X, Z.response );
+      Z.setY( Y.response );
 
       database.close();
 
-      // Do DN testing.
+      for ( unsigned image = 0; image < testing.size(); image++ ) {
+         for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
+            Image current( testing[image] );
+            Vectors::norm( X, current.getData(), IMAGE_SIZE );
+
+            Y.computePreresponse();
+
+            Y.update();
+         }
+      }
    }
 
    return 0;
