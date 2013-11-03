@@ -160,15 +160,33 @@ YArea::YArea( ifstream* database, double* x, double* z ) {
 }
 
 /**
-* Stores out a PGM file with the weights of our X neurons
+* Stores out a PGM file with the weights of a bank of neurons
+* neuronType may be either 'X' or 'Z' referring to the X or Z neuron banks
 **/
-void YArea::saveStemXY( const char* fileName, unsigned stride ) {
+void YArea::saveNeuronBank( const char* fileName, char neuronType, unsigned stride ) {
    ofstream stem( fileName, ios::binary );
+
+   unsigned size;
+   double **neuronBank;
+
+   switch ( neuronType ) {
+   case 'X':
+      size = _xSize;
+      neuronBank = _xNeurons;
+      break;
+   case 'Z':
+      size = _zSize;
+      neuronBank = _zNeurons;
+      break;
+   default:
+      fprintf( stderr, "Invalid neuron type '%c' selected", neuronType );
+      return;
+   }
 
    unsigned rowsCols = (unsigned) sqrt( _numNeurons );
    unsigned padding  = rowsCols - 1;
    unsigned totalStride = stride * rowsCols + padding;
-   unsigned imageHeight = _xSize / stride;
+   unsigned imageHeight = size / stride;
    unsigned totalHeight = imageHeight * rowsCols + padding;
 
    // Write out PGM header
@@ -181,9 +199,9 @@ void YArea::saveStemXY( const char* fileName, unsigned stride ) {
    Vectors::fill( horizSpacer, (char)WHITE, totalStride );
 
    for ( unsigned row = 0; row < rowsCols; row++ ) {
-      char rowImages[rowsCols][_xSize];
+      char rowImages[rowsCols][size];
       for ( unsigned col = 0; col < rowsCols; col++ ) {
-         Vectors::scaleTo255( rowImages[col], _xNeurons[row+col], _xSize );
+         Vectors::scaleTo255( rowImages[col], neuronBank[row+col], size );
       }
 
       for ( unsigned line = 0; line < imageHeight; line++ ) {

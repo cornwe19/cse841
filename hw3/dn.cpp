@@ -87,7 +87,8 @@ int main( int argc, char** argv ) {
          }
       }
       
-      Y.saveStemXY( "stem-XY.pgm", IMAGE_STRIDE );
+      Y.saveNeuronBank( "stem-XY.pgm", 'X', IMAGE_STRIDE );
+      Y.saveNeuronBank( "stem-YZ.pgm", 'Z', 5 );
 
       Y.writeToDatabase( &database );
 
