@@ -150,9 +150,13 @@ int main( int argc, char** argv ) {
          // Do updates
          Vectors::norm( X, current.getData(), IMAGE_SIZE );
          Y.update( true ); // Y is frozen
-         unsigned selectedClass = Z.update();
+         double highestResponse;
+         unsigned selectedClass;
+         Z.update( highestResponse, selectedClass );
 
-         output << setw( 12 ) << current.getClassName() << setw( 12 ) << classes[selectedClass] << endl;
+         output << setw( 12 ) << current.getClassName() 
+                << setw( 12 ) << classes[selectedClass] 
+                << setw( 12 ) << fixed << setprecision( 5 ) << highestResponse << endl;
          
          if ( selectedClass == currentClass ) {
             numCorrect++;

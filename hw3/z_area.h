@@ -11,7 +11,7 @@ public:
    double* response;
 
    bool computePreresponse();
-   unsigned update();
+   void update( double &strongestResponse, unsigned &responseIndex );
 
 private:
    unsigned _numNeurons;

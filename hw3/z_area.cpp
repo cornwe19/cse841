@@ -34,9 +34,9 @@ bool ZArea::computePreresponse() {
 }
 
 // Since Z doesn't really 'learn', just store out the strongest response
-unsigned ZArea::update() {
-   double   strongestResponse = _sampleY[0];
-   unsigned responseIndex     = 0;
+void ZArea::update( double &strongestResponse, unsigned &responseIndex ) {
+   strongestResponse = _sampleY[0];
+   responseIndex     = 0;
 
    for ( unsigned i = 1; i < _numNeurons; i++ ) {
       if ( _sampleY[i] > strongestResponse ) {
@@ -44,7 +44,5 @@ unsigned ZArea::update() {
          responseIndex = i;
       }
    }
-
-   return responseIndex;
 }
 
