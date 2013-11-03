@@ -1,0 +1,7 @@
+Script started on Sun Nov  3 17:39:17 2013
+<129 arctic:~/cse841/hw3 >./dn -o resut[Klts.txt -d db.dat -f ~cse841/web/class/HW2/841-440-Fall13/traininglist.txt -l 15 -Y 20
+<130 arctic:~/cse841/hw3 >./dn -o results.txt -d db.dat -f ~cse841/web/class/HW2/841-440-Fall13/testinglist.txt 
+<131 arctic:~/cse841/hw3 >exit
+exit
+
+Script done on Sun Nov  3 17:41:17 2013
