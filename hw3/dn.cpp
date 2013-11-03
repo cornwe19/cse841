@@ -85,6 +85,8 @@ int main( int argc, char** argv ) {
          }
       }
       
+      Y.saveStemXY( "stem-XY.pgm", IMAGE_STRIDE );
+
       Y.writeToDatabase( &database );
 
       database.close();

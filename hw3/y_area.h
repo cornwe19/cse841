@@ -15,6 +15,7 @@ public:
    void    update( bool frozen = false );
 
    void    writeToDatabase( std::ofstream* database );
+   void    saveStemXY( const char* fileName, unsigned stride );
 
 private:
    unsigned _numNeurons;

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 
@@ -156,5 +157,48 @@ YArea::YArea( ifstream* database, double* x, double* z ) {
    _sampleZ = new double[_zSize];
 
    response = new double[_zSize];
+}
+
+/**
+* Stores out a PGM file with the weights of our X neurons
+**/
+void YArea::saveStemXY( const char* fileName, unsigned stride ) {
+   ofstream stem( fileName, ios::binary );
+
+   unsigned rowsCols = (unsigned) sqrt( _numNeurons );
+   unsigned padding  = rowsCols - 1;
+   unsigned totalStride = stride * rowsCols + padding;
+   unsigned imageHeight = _xSize / stride;
+   unsigned totalHeight = imageHeight * rowsCols + padding;
+
+   // Write out PGM header
+   stem << "P5" << endl;
+   stem << totalStride << endl;
+   stem << totalHeight << endl;
+   stem << WHITE << endl;
+
+   char horizSpacer[totalStride];
+   Vectors::fill( horizSpacer, (char)WHITE, totalStride );
+
+   for ( unsigned row = 0; row < rowsCols; row++ ) {
+      char rowImages[rowsCols][_xSize];
+      for ( unsigned col = 0; col < rowsCols; col++ ) {
+         Vectors::scaleTo255( rowImages[col], _xNeurons[row+col], _xSize );
+      }
+
+      for ( unsigned line = 0; line < imageHeight; line++ ) {
+         for ( unsigned image = 0; image < rowsCols - 1; image++ ) {
+            stem.write( rowImages[image] + line, stride );
+            stem.put( WHITE );
+         }
+         stem.write( rowImages[rowsCols - 1], stride );
+      }
+      
+      if ( row != rowsCols - 1 ) { // Skip trailing spacer
+         stem.write( horizSpacer, totalStride );
+      }
+   }
+
+   stem.close();
 }
 
