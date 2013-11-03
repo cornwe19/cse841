@@ -10,7 +10,7 @@ ZArea::ZArea( unsigned numNeurons ) {
    _y = NULL;
 
    response = new double[_numNeurons];
-   Vectors::fill( response, 0, _numNeurons );
+   Vectors::fill( response, 0.0, _numNeurons );
 }
 
 void ZArea::setY( double* y ) {

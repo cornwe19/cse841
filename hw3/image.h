@@ -7,7 +7,10 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#define IMAGE_SIZE 64*88
+#define IMAGE_STRIDE 64
+#define IMAGE_HEIGHT 88
+#define IMAGE_SIZE IMAGE_STRIDE * IMAGE_HEIGHT
+#define WHITE 255
 #define CLASS_MAX 128
 
 class Image {

@@ -18,8 +18,7 @@
 #include "z_area.h"
 #include "vectors.h"
 
-#define IMAGE_SIZE 64*88
-#define SAMPLE_DURATION 3
+#define SAMPLE_DURATION 2
 
 using namespace std;
 
@@ -38,7 +37,7 @@ int main( int argc, char** argv ) {
 
    // Background image - common to training and testing
    double  background[IMAGE_SIZE];
-   Vectors::fill( background, 1, IMAGE_SIZE );
+   Vectors::fill( background, 1.0, IMAGE_SIZE );
    Vectors::norm( background, background, IMAGE_SIZE );
 
 
@@ -56,7 +55,7 @@ int main( int argc, char** argv ) {
       double  Z[zSize];
       YArea   Y( settings.numYNeurons, X, IMAGE_SIZE, Z, zSize );
 
-      Vectors::fill( Z, 0, zSize );
+      Vectors::fill( Z, 0.0, zSize );
 
       char currentClass[CLASS_MAX];
       int  classId = 0;
@@ -72,7 +71,7 @@ int main( int argc, char** argv ) {
             Vectors::norm( X, current.getData(), IMAGE_SIZE );
             // Only write out class mapping on first epoch
             if ( strcmp( current.getClassName(), currentClass ) && epoch == 0 ) {
-               Vectors::fill( Z, 0, numClasses + 1 );
+               Vectors::fill( Z, 0.0, zSize );
                Z[++classId] = 1;
                strcpy( currentClass, current.getClassName() );
 

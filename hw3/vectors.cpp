@@ -50,8 +50,3 @@ void Vectors::copy( double *dst, double* src, unsigned size ) {
    }
 }
 
-void Vectors::fill( double *dst, double value, unsigned size ) {
-   for ( unsigned i = 0; i < size; i++ ) {
-      dst[i] = value;
-   }
-}

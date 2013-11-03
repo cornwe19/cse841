@@ -1,11 +1,14 @@
 #include "y_area.h"
 #include "vectors.h"
+#include "image.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <fstream>
 
-double  imageDataGenerator() { return rand() % 255; }
+using namespace std;
+
+double  imageDataGenerator() { return rand() % WHITE; }
 double  classDataGenerator() { return ( (double)rand() / RAND_MAX ); }
 
 YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize ) {
@@ -26,7 +29,7 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
    response = new double[_zSize];
 
    _neuronalAges = new double[numNeurons];
-   Vectors::fill( _neuronalAges, 1, numNeurons );
+   Vectors::fill( _neuronalAges, 1.0, numNeurons );
 
    _sampleX = new double[_xSize];
    _sampleZ = new double[_zSize];
@@ -117,7 +120,7 @@ void YArea::update( bool frozen ) {
    Vectors::copy( response, zWeights, _zSize );
 }
 
-void YArea::writeToDatabase( std::ofstream* database ) {
+void YArea::writeToDatabase( ofstream* database ) {
    database->write( (char*) &_numNeurons, sizeof(unsigned) );
    database->write( (char*) &_xSize, sizeof(unsigned) );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
@@ -130,7 +133,7 @@ void YArea::writeToDatabase( std::ofstream* database ) {
    }
 }
 
-YArea::YArea( std::ifstream* database, double* x, double* z ) {
+YArea::YArea( ifstream* database, double* x, double* z ) {
    database->read( (char*) &_numNeurons, sizeof(unsigned) );
 
    _x = x;
