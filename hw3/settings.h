@@ -71,13 +71,15 @@ public:
    bool areValid() {
       return listingFile != NULL &&
              networkFile != NULL &&
-             outputFile  != NULL;
+             outputFile  != NULL && 
+             // If we're testing num neurons must not be 0
+             ( numEpochs == 0 || numYNeurons > 0 );
    }
 
 private:
    void err( char* progName, char** error ) {
        *error = new char[ERROR_MAX];
-       sprintf( *error, "Usage: %s [-l NUM_EPOCHS] -f FILE_NAME_LIST -d NETWORK_FILE -o OUTPUT_FILE\n", progName );
+       sprintf( *error, "Usage: %s [-l NUM_EPOCHS -Y NUM_NEURONS] -f FILE_NAME_LIST -d NETWORK_FILE -o OUTPUT_FILE\n - Note: if epochs are set, neurons must also be\n", progName );
    }
 
 };
