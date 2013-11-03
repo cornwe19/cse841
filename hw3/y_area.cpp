@@ -220,3 +220,18 @@ void YArea::saveNeuronBank( const char* fileName, char neuronType, unsigned stri
    stem.close();
 }
 
+void YArea::saveAges( const char* fileName ) {
+   ofstream ages( fileName );
+   
+   unsigned rowsCols = (unsigned) sqrt( _numNeurons );
+
+   for ( unsigned row = 0; row < rowsCols; row++ ) {
+      for ( unsigned col = 0; col < rowsCols; col++ ) {
+         ages << _neuronalAges[row+col] << '\t';
+      }
+      ages << endl;
+   }
+
+   ages.close();
+}
+
