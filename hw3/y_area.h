@@ -12,7 +12,7 @@ public:
    double* response;
 
    void    computePreresponse();
-   void    update();
+   void    update( bool frozen = false );
 
    void    writeToDatabase( std::ofstream* database );
 

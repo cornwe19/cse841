@@ -11,22 +11,16 @@ public:
    double* response;
 
    bool computePreresponse();
-   void update();
-
-   void printResponse();
+   unsigned update();
 
 private:
    unsigned _numNeurons;
 
    double *_y;
-   double **_neurons;
 
    // Temporary fields for each preresponse/update
-   unsigned _neuronalMatch;
    double   *_sampleY;
    // \Temporary fields
-
-   double** allocNeuronBank();
 };
 
 #endif

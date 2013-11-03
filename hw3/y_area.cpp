@@ -23,7 +23,7 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
    randomizeBank( _xNeurons, imageDataGenerator, _xSize );
    randomizeBank( _zNeurons, classDataGenerator, _zSize );
    
-   response = _zNeurons[0];
+   response = new double[_zSize];
 
    _neuronalAges = new double[numNeurons];
    Vectors::fill( _neuronalAges, 1, numNeurons );
@@ -45,6 +45,8 @@ YArea::~YArea() {
    
    delete [] _sampleX;
    delete [] _sampleZ;
+
+   delete [] response;
 }
 
 double** YArea::allocNeuronBank( unsigned neuronSize ) {
@@ -73,10 +75,10 @@ void YArea::computePreresponse() {
    // Find matching neuron and update it 
    double bestFit = 0;
 
+   Vectors::copy( _sampleX, _x, _xSize );
+   Vectors::copy( _sampleZ, _z, _zSize );
+   
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      Vectors::copy( _sampleX, _x, _xSize );
-      Vectors::copy( _sampleZ, _z, _zSize );
-
       double xFit = Vectors::dot( _xNeurons[i], _sampleX, _xSize );
       double zFit = Vectors::dot( _zNeurons[i], _sampleZ, _zSize );
 
@@ -85,33 +87,34 @@ void YArea::computePreresponse() {
          _neuronalMatch = i;
       }
    }
-
-   printf( "Y: Found best match %d (%f)\n", _neuronalMatch, bestFit );
 }
 
-void YArea::update() {
-   // Update weight vectors for matched neuron
-   double age = _neuronalAges[_neuronalMatch]++;
-   double w1 = ( age - 1.0 ) / 1.0;
-   double w2 = 1.0 / age;
-
-   double* xWeights = _xNeurons[_neuronalMatch];
+void YArea::update( bool frozen ) {
    double* zWeights = _zNeurons[_neuronalMatch];
+   
+   if ( !frozen ) {
+      // Update weight vectors for matched neuron
+      double age = ++_neuronalAges[_neuronalMatch];
+      double w1 = ( age - 1.0 ) / 1.0;
+      double w2 = 1.0 / age;
 
-   for ( unsigned i = 0; i < _xSize; i++ ) {
-      xWeights[i] = w1 * xWeights[i] + w2 * _sampleX[i];
+      double* xWeights = _xNeurons[_neuronalMatch];
+
+      for ( unsigned i = 0; i < _xSize; i++ ) {
+         xWeights[i] = w1 * xWeights[i] + w2 * _sampleX[i];
+      }
+
+      for ( unsigned i = 0; i < _zSize; i++ ) {
+         zWeights[i] = w1 * zWeights[i] + w2 * _sampleZ[i];
+      }
+
+      // Re-normalize weights once we've updated
+      Vectors::norm( xWeights, xWeights, _xSize );
+      Vectors::norm( zWeights, zWeights, _zSize );
    }
-
-   for ( unsigned i = 0; i < _zSize; i++ ) {
-      zWeights[i] = w1 * zWeights[i] + w2 * _sampleZ[i];
-   }
-
-   // Re-normalize weights once we've updated
-   Vectors::norm( xWeights, xWeights, _xSize );
-   Vectors::norm( zWeights, zWeights, _zSize );
 
    // Update pointer to new weight vector for Z to monitor
-   response = zWeights;
+   Vectors::copy( response, zWeights, _zSize );
 }
 
 void YArea::writeToDatabase( std::ofstream* database ) {
@@ -149,6 +152,6 @@ YArea::YArea( std::ifstream* database, double* x, double* z ) {
    _sampleX = new double[_xSize];
    _sampleZ = new double[_zSize];
 
-   response = _zNeurons[0];
+   response = new double[_zSize];
 }
 

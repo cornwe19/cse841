@@ -9,9 +9,8 @@ ZArea::ZArea( unsigned numNeurons ) {
    _sampleY = new double[_numNeurons];
    _y = NULL;
 
-   _neurons = allocNeuronBank();
-
-   response = _neurons[0];
+   response = new double[_numNeurons];
+   Vectors::fill( response, 0, _numNeurons );
 }
 
 void ZArea::setY( double* y ) {
@@ -19,63 +18,33 @@ void ZArea::setY( double* y ) {
 }
 
 ZArea::~ZArea() {
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      delete [] _neurons[i];
-   }
-
-   delete [] _neurons;
+   delete [] response;
 
    delete [] _sampleY;
-}
-
-double** ZArea::allocNeuronBank() {
-   double** Z = new double*[_numNeurons];
-
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      Z[i] = new double[_numNeurons];
-      for ( unsigned j = 0; j < _numNeurons; j++ ) {
-         if ( i == j ) {
-            Z[i][j] = 1;
-         } else {
-            Z[i][j] = 0;
-         }
-      }
-   }
-
-   return Z;
 }
 
 bool ZArea::computePreresponse() {
    if ( _y == NULL ) {
       return false;
    }
-   
-   double bestFit = 0;
 
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      Vectors::copy( _sampleY, _y, _numNeurons );
-      
-      double yFit = Vectors::dot( _neurons[i], _sampleY, _numNeurons );
-
-      if ( yFit > bestFit ) {
-         bestFit = yFit;
-         _neuronalMatch = i;
-      }
-   }
-
-   printf( "Z: Found best match %d (%f)\n", _neuronalMatch, bestFit );
+   Vectors::copy( _sampleY, _y, _numNeurons );
 
    return true;
 }
 
-// Since Z doesn't really 'learn', just store out the neuron we found
-void ZArea::update() {
-   response = _neurons[_neuronalMatch];
+// Since Z doesn't really 'learn', just store out the strongest response
+unsigned ZArea::update() {
+   double   strongestResponse = _sampleY[0];
+   unsigned responseIndex     = 0;
+
+   for ( unsigned i = 1; i < _numNeurons; i++ ) {
+      if ( _sampleY[i] > strongestResponse ) {
+         strongestResponse = _sampleY[i];
+         responseIndex = i;
+      }
+   }
+
+   return responseIndex;
 }
 
-void ZArea::printResponse() {
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      printf( "%.0f ", response[i] );
-   }
-   printf( "\n" );
-}

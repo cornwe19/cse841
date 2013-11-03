@@ -36,6 +36,12 @@ int main( int argc, char** argv ) {
 
    ofstream out( settings.outputFile );
 
+   // Background image - common to training and testing
+   double  background[IMAGE_SIZE];
+   Vectors::fill( background, 1, IMAGE_SIZE );
+   Vectors::norm( background, background, IMAGE_SIZE );
+
+
    // Training mode
    if ( settings.numEpochs > 0 ) {
       Listing training;
@@ -43,10 +49,6 @@ int main( int argc, char** argv ) {
     
       out << "Read " << training.size() << " images" << endl;
       out << "Database file '" << settings.networkFile << "'" << endl;
-
-      double  background[IMAGE_SIZE];
-      // Init background to 1's
-      Vectors::fill( background, 1, IMAGE_SIZE );
 
       const unsigned zSize = training.numClasses() + 1;
 
@@ -63,38 +65,26 @@ int main( int argc, char** argv ) {
       unsigned numClasses = training.numClasses();
       database.write( (char*) &numClasses, sizeof(unsigned) );
 
-      int t = 1;
-      for ( unsigned image = 0; image < training.size(); image++ ) {
-        
-         // Skip background images for now
-         // Vectors::copy( X, background, IMAGE_SIZE );
-         // for ( unsigned bg = 0; bg < SAMPLE_DURATION; bg++ ) {
-         //    Y.computePreresponse();
-         // }
+      for ( unsigned epoch = 0; epoch < settings.numEpochs; epoch++ ) {
+         for ( unsigned image = 0; image < training.size(); image++ ) {
 
-         Image current( training[image] );
-         Vectors::norm( X, current.getData(), IMAGE_SIZE );
-         if ( strcmp( current.getClassName(), currentClass ) ) {
-            Z[classId] = 0;
-            Z[++classId] = 1;
-            strcpy( currentClass, current.getClassName() );
+            Image current( training[image] );
+            Vectors::norm( X, current.getData(), IMAGE_SIZE );
+            // Only write out class mapping on first epoch
+            if ( strcmp( current.getClassName(), currentClass ) && epoch == 0 ) {
+               Vectors::fill( Z, 0, numClasses + 1 );
+               Z[++classId] = 1;
+               strcpy( currentClass, current.getClassName() );
 
-            for ( unsigned i = 0; i < zSize; i++ ) {
-               printf( "%.0f ", Z[i] );
+               // Write out class mappings as we find them
+               // (Write out the null terminator as well)
+               database.write( currentClass, strlen( currentClass ) + 1 ); 
             }
-            printf( "\n" );
 
-            // Write out class mappings as we find them
-            database.write( currentClass, strlen( currentClass ) + 1 ); // Write out the null terminator as well
-         }
-
-         // Skip presenting same image multiple times for now
-         //for ( unsigned sample = 0; sample < SAMPLE_DURATION; sample++ ) {
             Y.computePreresponse();
             Y.update();
-         //}
+         }
       }
-
       
       Y.writeToDatabase( &database );
 
@@ -125,23 +115,42 @@ int main( int argc, char** argv ) {
 
       database.close();
 
+      int numCorrect = 0;
+
+      // Init X with a background Image
+      Vectors::copy( X, background, IMAGE_SIZE );
       for ( unsigned image = 0; image < testing.size(); image++ ) {
-         for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
-            Image current( testing[image] );
-            Vectors::norm( X, current.getData(), IMAGE_SIZE );
+         
+         Image current( testing[image] );
 
-            Y.computePreresponse();
-            if ( !Z.computePreresponse() ) {
-               fprintf( stderr, "Forgot to hook up _y area\n" );
-               exit( 1 );
+         // Find the index of the image's class
+         unsigned currentClass = 0;
+         for ( unsigned i = 0; i < numClasses; i++ ) {
+            if ( !strcmp( current.getClassName(), classes[i] ) ) {
+               currentClass = i;
+               break;
             }
+         }
 
-            Y.update();
-            Z.update();
+         // Compute preresponses (note that X doesn't have one)
+         Y.computePreresponse();
+         if ( !Z.computePreresponse() ) {
+            fprintf( stderr, "Forgot to hook up _y area\n" );
+            exit( 1 );
+         }
 
-            
+         // Do updates
+         Vectors::norm( X, current.getData(), IMAGE_SIZE );
+         Y.update( true ); // Y is frozen
+         unsigned selectedClass = Z.update();
+
+         printf( "Matching classification %d with ground truth %d\n", selectedClass, currentClass );
+         if ( selectedClass == currentClass ) {
+            numCorrect++;
          }
       }
+
+      printf( "Num correct %d/%d\n", numCorrect, testing.size() );
    }
 
    return 0;
