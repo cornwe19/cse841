@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <fstream>
+#include <iomanip>
 #include <cmath>
 #include <climits>
 #include <numeric>
@@ -122,6 +123,8 @@ int main( int argc, char** argv ) {
 
       int numCorrect = 0;
 
+      ofstream output( settings.outputFile );
+
       // Init X with a background Image
       Vectors::copy( X, background, IMAGE_SIZE );
       for ( unsigned image = 0; image < testing.size(); image++ ) {
@@ -149,13 +152,16 @@ int main( int argc, char** argv ) {
          Y.update( true ); // Y is frozen
          unsigned selectedClass = Z.update();
 
-         printf( "Matching classification %d with ground truth %d\n", selectedClass, currentClass );
+         output << setw( 12 ) << current.getClassName() << setw( 12 ) << classes[selectedClass] << endl;
+         
          if ( selectedClass == currentClass ) {
             numCorrect++;
          }
       }
 
-      printf( "Num correct %d/%d (%.02f)\n", numCorrect, testing.size(), (double)numCorrect / (double)testing.size() );
+      output << "Matched " << setprecision( 3 ) <<  (double)numCorrect / (double)testing.size() * 100 << "% of images correctly" << endl;
+
+      output.close();
    }
 
    return 0;
