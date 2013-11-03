@@ -23,5 +23,5 @@ mkdirs:
 	mkdir -p out
 
 clean:
-	rm -rf pcanet
+	rm -rf dn 
 	rm -rf bin/*
