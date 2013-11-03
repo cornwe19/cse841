@@ -79,9 +79,11 @@ int main( int argc, char** argv ) {
                // (Write out the null terminator as well)
                database.write( currentClass, strlen( currentClass ) + 1 ); 
             }
-
-            Y.computePreresponse();
-            Y.update();
+           
+            for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
+               Y.computePreresponse();
+               Y.update();
+            }
          }
       }
       
@@ -151,7 +153,7 @@ int main( int argc, char** argv ) {
          }
       }
 
-      printf( "Num correct %d/%d\n", numCorrect, testing.size() );
+      printf( "Num correct %d/%d (%.02f)\n", numCorrect, testing.size(), (double)numCorrect / (double)testing.size() );
    }
 
    return 0;
