@@ -163,7 +163,7 @@ int main( int argc, char** argv ) {
          }
       }
 
-      output << "Matched " << setprecision( 3 ) <<  (double)numCorrect / (double)testing.size() * 100 << "% of images correctly" << endl;
+      output << "Matched " << setprecision( 3 ) << ( (double)numCorrect / (double)testing.size() ) * 100 << "% of images correctly" << endl;
 
       output.close();
    }
