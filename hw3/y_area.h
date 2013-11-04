@@ -1,3 +1,11 @@
+/**
+* Dennis Cornwell
+* Y area of the developmental network
+*  - Provides options for running in training mode, where it is free to learn and 
+*    testing mode, where updates are locked and only matching learned neurons appear in
+*    reponses.
+*/
+
 #ifndef Y_AREA_H
 #define Y_AREA_H
 

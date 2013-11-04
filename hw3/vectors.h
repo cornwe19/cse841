@@ -1,3 +1,8 @@
+/*
+* Dennis Cornwell
+* Helpers for performing specific math and aggregate operations on arrays of data
+*/
+
 #ifndef VECTORS_H
 #define VECTORS_H
 

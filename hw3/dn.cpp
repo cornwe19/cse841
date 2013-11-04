@@ -1,7 +1,8 @@
 /**
 * Dennis Cornwell
-* ICCPCA net implementation with 2 distinct states, 1 for training and the other for testing
-*  - Generates a series of MEF eigen vector images, a mean image, a database file and an output report
+* Developmental Network implementation with two modes:
+*  - Training: Z is supervised, X is strictly input and Y is free to learn from both
+*  - Testing: Z is free, X is strictly input and Y is locked (does not adapt, just updates response)
 **/
 
 #include <stdio.h>
@@ -47,9 +48,6 @@ int main( int argc, char** argv ) {
       Listing training;
       training.load( settings.listingFile );
     
-      out << "Read " << training.size() << " images" << endl;
-      out << "Database file '" << settings.networkFile << "'" << endl;
-
       const unsigned zSize = training.numClasses() + 1;
 
       double  X[IMAGE_SIZE];
