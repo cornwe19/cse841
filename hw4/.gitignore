@@ -1,0 +1,10 @@
+# data 
+testImages/
+
+# Temp Files
+*.swp
+
+# Binaries
+dntext
+bin/
+out/ 
