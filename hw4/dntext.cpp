@@ -41,10 +41,10 @@ int main( int argc, char** argv ) {
 
    // Training mode
    if ( settings.numEpochs > 0 ) {
-      double  X[xNeurons];
-      double  Z[FA_STATES];
+      double X[xNeurons];
+      double Z[FA_STATES];
       Vectors::fill( Z, 0.0, FA_STATES );
-      YArea   Y( settings.numYNeurons, X, VOCAB_SIZE, Z, FA_STATES );
+      YArea  Y( settings.numYNeurons, X, VOCAB_SIZE, Z, FA_STATES );
 
       ifstream trainingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
