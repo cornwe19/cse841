@@ -54,7 +54,10 @@ int main( int argc, char** argv ) {
          // Clear Z training before processing next file
          Vectors::fill( Z, 0.0, FA_STATES );
          Vocabulary vocab( fileName );
-         while( vocab.encodeNextWord( X.response, xNeurons ) ) {
+         unsigned wordId = 0;
+         while( ( wordId = vocab.nextWordId() ) > 0 ) {
+            X.setInputId( wordId );
+
             Vectors::print( X.response, xNeurons );
             printf( "\n" );
 
@@ -66,7 +69,7 @@ int main( int argc, char** argv ) {
                   printf( "Transitioning: " );
                   Vectors::print( Z, FA_STATES );
                   printf( " -> " );
-                  Transitions::updateState( Z, X.response, xNeurons );
+                  Transitions::updateState( Z, X.getResponseId() );
                   Vectors::print( Z, FA_STATES );
                   printf( "\n" );
                }

@@ -24,14 +24,7 @@ const unsigned TRANSITIONS[FA_STATES][VOCAB_SIZE] = {
 class Transitions {
 public:
 
-   static void updateState( double* Z, double* X, unsigned xSize ) {
-      // Reconstruct vocabulary ID
-      unsigned vocabId = 0;
-      for ( unsigned i = 0; i < xSize; i++ ) {
-         vocabId = vocabId << 1;
-         vocabId += X[i];
-      }
-
+   static void updateState( double* Z, unsigned vocabId ) {
       // Read current state
       unsigned lastState = 0;
       for ( unsigned i = 0; i < FA_STATES; i++ ) {

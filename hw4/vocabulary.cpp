@@ -18,26 +18,18 @@ Vocabulary::~Vocabulary() {
    _file.close();
 }
 
-void indexToBinaryPattern( unsigned match, double* neurons, unsigned size ) {
-   for ( unsigned i = 0; i < size; i++ ) {
-      neurons[i] = ( match >> ( size - i - 1 ) ) & 1;
-   }
-}
-
-// Get the 1 based index of the next word
-bool Vocabulary::encodeNextWord( double* neurons, unsigned size ) {
+unsigned Vocabulary::nextWordId() {
    string word;
    _file >> word;
 
-   printf( "Testing word %s\n", word.c_str() );
+   printf( "Read word: '%s'\n", word.c_str() );
 
-   unsigned result = false;
+   unsigned result = 0;
 
    for ( unsigned i = 0; i < VOCAB_SIZE; i++ ) {
       if ( !strcmp( word.c_str(), VOCABULARY[i] ) ) {
-         indexToBinaryPattern( i+1, neurons, size );
-
-         result = true;
+         result = i + 1;
+         break;
       }
    }
 

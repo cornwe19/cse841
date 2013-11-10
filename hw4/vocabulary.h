@@ -13,7 +13,11 @@ public:
 
    static const char* VOCABULARY[VOCAB_SIZE];
 
-   bool encodeNextWord( double* neurons, unsigned size );
+   /** 
+   * ID of next vocab word in file
+   * Note: a result of 0 means no words are left in the file
+   **/
+   unsigned nextWordId();
 
 private:
    std::ifstream _file;
