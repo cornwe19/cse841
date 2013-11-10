@@ -1,6 +1,7 @@
 #include "vectors.h"
 #include <cmath>
 #include <cfloat>
+#include <stdio.h>
 
 double Vectors::length( double *vec, unsigned size ) {
    double sum = dot( vec, vec, size );
@@ -48,5 +49,12 @@ void Vectors::copy( double *dst, double* src, unsigned size ) {
    for ( unsigned i = 0; i < size; i++ ) {
       dst[i] = src[i];
    }
+}
+
+void Vectors::print( double* src, unsigned size ) {
+   for ( unsigned i = 0; i < size - 1; i++ ) {
+      printf( "%.02f, ", src[i] );
+   }
+   printf( "%.02f", src[size-1] );
 }
 
