@@ -1,15 +1,15 @@
 #include "y_area.h"
 #include "vectors.h"
-#include "image.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <fstream>
 #include <cmath>
 
+#define WHITE 255
+
 using namespace std;
 
-double  imageDataGenerator() { return rand() % WHITE; }
 double  classDataGenerator() { return ( (double)rand() / RAND_MAX ); }
 
 YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize ) {
@@ -24,7 +24,7 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
    _zNeurons = allocNeuronBank( zSize );
 
    srand( time( NULL ) );
-   randomizeBank( _xNeurons, imageDataGenerator, _xSize );
+   randomizeBank( _xNeurons, classDataGenerator, _xSize );
    randomizeBank( _zNeurons, classDataGenerator, _zSize );
    
    response = new double[_zSize];
