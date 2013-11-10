@@ -47,9 +47,7 @@ int main( int argc, char** argv ) {
 
       ifstream trainingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
-      while ( !trainingFile.eof() ) {
-         trainingFile.getline( fileName, FILENAME_MAX );
-
+      while ( trainingFile.getline( fileName, FILENAME_MAX ) ) {
          // Clear Z training before processing next file
          Vectors::fill( Z, 0.0, FA_STATES );
          Vocabulary vocab( fileName );

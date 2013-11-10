@@ -22,14 +22,16 @@ unsigned Vocabulary::nextWordId() {
    string word;
    _file >> word;
 
-   printf( "Read word: '%s'\n", word.c_str() );
 
    unsigned result = 0;
 
-   for ( unsigned i = 0; i < VOCAB_SIZE; i++ ) {
-      if ( !strcmp( word.c_str(), VOCABULARY[i] ) ) {
-         result = i + 1;
-         break;
+   if ( word.size() > 0  ) {
+      printf( "Read word: '%s'\n", word.c_str() );
+      for ( unsigned i = 0; i < VOCAB_SIZE; i++ ) {
+         if ( !strcmp( word.c_str(), VOCABULARY[i] ) ) {
+            result = i + 1;
+            break;
+         }
       }
    }
 
