@@ -18,43 +18,58 @@ public:
    char*     networkFile;
    char*     outputFile;
    unsigned  numYNeurons;
-   unsigned  numEpochs;
+   bool      isTraining;
 
    Settings() {
       listingFile = NULL;
       networkFile = NULL;
       outputFile  = NULL;
-      numEpochs   = 0;
+      isTraining  = false;
       numYNeurons = 0;
    }
 
    void load( int argc, char** argv, char** error ) {
-      if ( argc % 2 != 1 ) {
-         err( argv[0], error );
-      }
-
-      for ( int i = 1; i < argc; i += 2 ) {
+      for ( int i = 1; i < argc; i++ ) {
          char* option = argv[i];
-         char* value  = argv[i+1];
          int n = 0;
 
          if ( option[0] == '-' ) {
             switch( option[1] ) {
                case 'd':
-                  networkFile = value;
+                  if ( ++i < argc ) {
+                     networkFile = argv[i];
+                  } else {
+                     err( argv[0], error );
+                     return;
+                  }
                   break;
                case 'f':
-                  listingFile = value;
+                  if ( ++i < argc ) {
+                     listingFile = argv[i];
+                  } else {
+                     err( argv[0], error );
+                     return;
+                  }
                   break;
                case 'l':
-                  numEpochs = atoi( value );
+                  isTraining = true;
                   break;
                case 'o':
-                  outputFile = value;
+                  if ( ++i < argc ) {
+                     outputFile = argv[i];
+                  } else {
+                     err( argv[0], error );
+                     return;
+                  }
                   break;
                case 'Y':
-                  n = atoi( value );
-                  numYNeurons = n*n; // n^2
+                  if ( ++i < argc ) {
+                     n = atoi( argv[i] );
+                     numYNeurons = n*n; // n^2
+                  } else {
+                     err( argv[0], error );
+                     return;
+                  }
                   break;
                default:
                   err( argv[0], error );
@@ -73,15 +88,14 @@ public:
              networkFile != NULL &&
              outputFile  != NULL && 
              // If we're testing num neurons must not be 0
-             ( numEpochs == 0 || numYNeurons > 0 );
+             ( !isTraining || numYNeurons > 0 );
    }
 
 private:
    void err( char* progName, char** error ) {
        *error = new char[ERROR_MAX];
-       sprintf( *error, "Usage: %s [-l NUM_EPOCHS -Y NUM_NEURONS] -f FILE_NAME_LIST -d NETWORK_FILE -o OUTPUT_FILE\n - Note: if epochs are set, neurons must also be\n", progName );
+       sprintf( *error, "Usage: %s [-l -Y NUM_NEURONS] -f FILE_NAME_LIST -d NETWORK_FILE -o OUTPUT_FILE\n - Note: if training is set, neurons must also be\n", progName );
    }
-
 };
 
 #endif

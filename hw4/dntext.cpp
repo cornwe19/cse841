@@ -40,7 +40,7 @@ int main( int argc, char** argv ) {
    printf( "Using X size %d\n", xNeurons ); 
 
    // Training mode
-   if ( settings.numEpochs > 0 ) {
+   if ( settings.isTraining ) {
       double X[xNeurons];
       double Z[FA_STATES];
       YArea  Y( settings.numYNeurons, X, VOCAB_SIZE, Z, FA_STATES );
