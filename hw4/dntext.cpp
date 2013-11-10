@@ -50,8 +50,9 @@ int main( int argc, char** argv ) {
       while ( !trainingFile.eof() ) {
          trainingFile.getline( fileName, FILENAME_MAX );
 
-         // Clear Z training before processing next file
+         // Clear X and Z training before processing next file
          Vectors::fill( Z, 0.0, FA_STATES );
+         Vectors::fill( X.response, 0.0, xNeurons );
          Vocabulary vocab( fileName );
          unsigned wordId = 0;
          while( ( wordId = vocab.nextWordId() ) > 0 ) {
@@ -77,6 +78,13 @@ int main( int argc, char** argv ) {
 
          printf( "\n" );
       }
+
+      for ( unsigned i = 0; i < VOCAB_SIZE; i++ ) {
+         printf( " %9s ", Vocabulary::VOCABULARY[i] );
+      }
+      printf( "\n" );
+
+      X.dumpPredictions();
 
    } 
    // Testing mode

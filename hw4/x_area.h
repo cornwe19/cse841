@@ -13,9 +13,16 @@ public:
    static void     encodeId( unsigned id, double* dst, unsigned dstSize );
    static unsigned decodeId( double* src, unsigned srcSize );
 
+   void dumpPredictions();
+
    double* response;
 private:
+   unsigned _responseSize;
    unsigned _numNeurons;
+   double **_neurons;
+   double  *_neuronalAges;
+
+   double _age;
 };
 
 #endif
