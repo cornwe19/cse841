@@ -1,10 +1,8 @@
-all: vocabulary vectors y_area z_area image dntext
-
-dntext: dntext.cpp settings.h image y_area vectors 
+dntext: dntext.cpp settings.h x_area y_area z_area vocabulary vectors 
 	g++ dntext.cpp -Wall bin/* -o dntext
 
-image: mkdirs image.h image.cpp
-	g++ -c image.cpp -g -Wall -o bin/image.o
+x_area: mkdirs x_area.h x_area.cpp
+	g++ -c x_area.cpp -g -Wall -o bin/x_area.o
 
 y_area: mkdirs y_area.h y_area.cpp
 	g++ -c y_area.cpp -g -Wall -o bin/y_area.o
