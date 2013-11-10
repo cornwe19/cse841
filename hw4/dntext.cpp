@@ -43,7 +43,6 @@ int main( int argc, char** argv ) {
    if ( settings.numEpochs > 0 ) {
       double X[xNeurons];
       double Z[FA_STATES];
-      Vectors::fill( Z, 0.0, FA_STATES );
       YArea  Y( settings.numYNeurons, X, VOCAB_SIZE, Z, FA_STATES );
 
       ifstream trainingFile( settings.listingFile );
@@ -51,6 +50,8 @@ int main( int argc, char** argv ) {
       while ( !trainingFile.eof() ) {
          trainingFile.getline( fileName, FILENAME_MAX );
 
+         // Clear Z training before processing next file
+         Vectors::fill( Z, 0.0, FA_STATES );
          Vocabulary vocab( fileName );
          while( vocab.encodeNextWord( X, xNeurons ) ) {
             printf( "X( %.0f, %.0f, %.0f, %.0f )\n", X[0], X[1], X[2], X[3] );
@@ -69,6 +70,8 @@ int main( int argc, char** argv ) {
                }
             }
          }
+
+         printf( "\n" );
       }
 
    } 
