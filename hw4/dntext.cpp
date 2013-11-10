@@ -16,6 +16,7 @@
 #include "settings.h"
 #include "y_area.h"
 #include "z_area.h"
+#include "x_area.h"
 #include "vectors.h"
 #include "vocabulary.h"
 #include "transitions.h"
@@ -41,9 +42,9 @@ int main( int argc, char** argv ) {
 
    // Training mode
    if ( settings.isTraining ) {
-      double X[xNeurons];
+      XArea  X( xNeurons );
       double Z[FA_STATES];
-      YArea  Y( settings.numYNeurons, X, VOCAB_SIZE, Z, FA_STATES );
+      YArea  Y( settings.numYNeurons, X.response, xNeurons, Z, FA_STATES );
 
       ifstream trainingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
@@ -53,8 +54,9 @@ int main( int argc, char** argv ) {
          // Clear Z training before processing next file
          Vectors::fill( Z, 0.0, FA_STATES );
          Vocabulary vocab( fileName );
-         while( vocab.encodeNextWord( X, xNeurons ) ) {
-            printf( "X( %.0f, %.0f, %.0f, %.0f )\n", X[0], X[1], X[2], X[3] );
+         while( vocab.encodeNextWord( X.response, xNeurons ) ) {
+            Vectors::print( X.response, xNeurons );
+            printf( "\n" );
 
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
                Y.computePreresponse();
@@ -64,7 +66,7 @@ int main( int argc, char** argv ) {
                   printf( "Transitioning: " );
                   Vectors::print( Z, FA_STATES );
                   printf( " -> " );
-                  Transitions::updateState( Z, X, xNeurons );
+                  Transitions::updateState( Z, X.response, xNeurons );
                   Vectors::print( Z, FA_STATES );
                   printf( "\n" );
                }
