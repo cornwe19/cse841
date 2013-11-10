@@ -58,6 +58,15 @@ int main( int argc, char** argv ) {
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
                Y.computePreresponse();
                Y.update();
+
+               if ( d == 1 ) {
+                  printf( "Transitioning: " );
+                  Vectors::print( Z, FA_STATES );
+                  printf( " -> " );
+                  Transitions::updateState( Z, X, xNeurons );
+                  Vectors::print( Z, FA_STATES );
+                  printf( "\n" );
+               }
             }
          }
       }
