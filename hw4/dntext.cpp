@@ -38,7 +38,6 @@ int main( int argc, char** argv ) {
    }
 
    unsigned xNeurons = (unsigned)ceil( log( VOCAB_SIZE ) / log( 2 ) );
-   printf( "Using X size %d\n", xNeurons ); 
 
    // Training mode
    if ( settings.isTraining ) {
