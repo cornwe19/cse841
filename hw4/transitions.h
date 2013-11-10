@@ -27,10 +27,9 @@ public:
    static void updateState( double* Z, double* X, unsigned xSize ) {
       // Reconstruct vocabulary ID
       unsigned vocabId = 0;
-      unsigned factor = (unsigned)pow( 2, xSize-1 );
       for ( unsigned i = 0; i < xSize; i++ ) {
-         vocabId += X[i] * factor;
-         factor /= 2;
+         vocabId = vocabId << 1;
+         vocabId += X[i];
       }
 
       // Read current state
