@@ -37,29 +37,33 @@ int main( int argc, char** argv ) {
        exit( 1 );
    }
 
-   unsigned xNeurons = (unsigned)ceil( log( VOCAB_SIZE ) / log( 2 ) );
+   unsigned xResponseSize = (unsigned)ceil( log( VOCAB_SIZE ) / log( 2 ) );
 
    // Training mode
    if ( settings.isTraining ) {
-      XArea  X( xNeurons );
+      XArea  X( xResponseSize, VOCAB_SIZE );
       double Z[FA_STATES];
-      YArea  Y( settings.numYNeurons, X.response, xNeurons, Z, FA_STATES );
+      YArea  Y( settings.numYNeurons, X.response, xResponseSize, Z, FA_STATES );
+      unsigned lastWordId = 0;
+
+      X.setConnections( &lastWordId, Y.responseX );
 
       ifstream trainingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
       while ( trainingFile.getline( fileName, FILENAME_MAX ) ) {
          // Clear Z training before processing next file
          Vectors::fill( Z, 0.0, FA_STATES );
-         Vocabulary vocab( fileName );
-         unsigned wordId = 0;
-         while( ( wordId = vocab.nextWordId() ) > 0 ) {
-            X.setInputId( wordId );
 
-            Vectors::print( X.response, xNeurons );
+         Vocabulary vocab( fileName );
+         while( ( lastWordId = vocab.nextWordId() ) > 0 ) {
+            Vectors::print( X.response, xResponseSize );
             printf( "\n" );
 
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
+               X.computePreresponse();
                Y.computePreresponse();
+
+               X.update();
                Y.update();
 
                if ( d == 1 ) {

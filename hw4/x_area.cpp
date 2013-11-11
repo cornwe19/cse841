@@ -1,21 +1,37 @@
 #include "x_area.h"
+#include "vectors.h"
+#include <cstdlib>
+#include <cstdio>
 
-XArea::XArea( unsigned numNeurons ) {
+XArea::XArea( unsigned responseSize, unsigned numNeurons ) {
+   _responseSize = responseSize;
    _numNeurons = numNeurons;
 
-   response = new double[numNeurons];
+   response = new double[responseSize];
+
+   _neurons = new double*[_numNeurons];
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      _neurons[i] = new double[_responseSize];
+      Vectors::fill( _neurons[i], 0.0, _responseSize );
+   }
+
+   _ySample = new double[responseSize];
 }
 
 XArea::~XArea() {
    delete [] response;
-}
 
-void XArea::setInputId( unsigned id ) {
-   encodeId( id, response, _numNeurons );
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      delete [] _neurons[i];
+   }
+
+   delete [] _neurons;
+
+   delete [] _ySample;
 }
 
 unsigned XArea::getResponseId() {
-   return decodeId( response, _numNeurons );
+   return decodeId( response, _responseSize );
 }
 
 void XArea::encodeId( unsigned id, double* dst, unsigned dstSize ) {
@@ -35,3 +51,22 @@ unsigned XArea::decodeId( double* src, unsigned srcSize ) {
    return id;
 }
 
+void XArea::setConnections( unsigned* env, double* y ) {
+   _y = y;
+   _env = env;
+}
+
+bool XArea::computePreresponse() {
+   if ( _y == NULL ) {
+      return false;
+   } 
+
+   Vectors::copy( _ySample, _y, _responseSize );
+   _envSample = *_env;
+
+   return true; 
+}
+
+void XArea::update() {
+   encodeId( _envSample, response, _responseSize ); 
+}

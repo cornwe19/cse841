@@ -17,7 +17,8 @@ public:
    YArea( std::ifstream* database, double* x, double* z );
    ~YArea();
 
-   double* response;
+   double* responseZ;
+   double* responseX;
 
    void    computePreresponse();
    void    update( bool frozen = false );
