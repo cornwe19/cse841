@@ -12,8 +12,10 @@ double Vectors::length( double *vec, unsigned size ) {
 void Vectors::norm( double *dst, double *src, unsigned size ) {
    double len = length( src, size );
 
-   for ( unsigned i = 0; i < size; i++ ) {
-      dst[i] = src[i] / len;
+   if ( len > 0 ) {
+      for ( unsigned i = 0; i < size; i++ ) {
+         dst[i] = src[i] / len;
+      }
    }
 }
 

@@ -24,20 +24,16 @@ const unsigned TRANSITIONS[FA_STATES][VOCAB_SIZE] = {
 class Transitions {
 public:
 
-   static void updateState( double* Z, unsigned vocabId ) {
-      // Read current state
+   static int getNextState( double* currentState, unsigned vocabId ) {
       unsigned lastState = 0;
       for ( unsigned i = 0; i < FA_STATES; i++ ) {
-         if ( Z[i] > 0 ) {
+         if ( currentState[i] > 0 ) {
             lastState = i;
             break;
          }
       }
 
-      // 0 out last state, follow transition, turn on new state
-      Z[lastState] = 0;
-      unsigned nextState = TRANSITIONS[lastState][vocabId-1];
-      Z[nextState] = 1;
+      return TRANSITIONS[lastState][vocabId-1];
    }
 
 };

@@ -2,15 +2,12 @@
 #include "vectors.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 #include <fstream>
 #include <cmath>
 
 #define WHITE 255
 
 using namespace std;
-
-double  classDataGenerator() { return ( (double)rand() / RAND_MAX ); }
 
 YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize ) {
    _numNeurons = numNeurons;
@@ -22,13 +19,9 @@ YArea::YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, c
 
    _xNeurons = allocNeuronBank( xSize );
    _zNeurons = allocNeuronBank( zSize );
+   _numInitialized = 0;
 
-   srand( time( NULL ) );
-   randomizeBank( _xNeurons, classDataGenerator, _xSize );
-   randomizeBank( _zNeurons, classDataGenerator, _zSize );
-   
-   responseZ = new double[_zSize];
-   responseX = new double[_xSize];
+   response = new double[_xSize + _zSize];
 
    _neuronalAges = new double[numNeurons];
    Vectors::fill( _neuronalAges, 1.0, numNeurons );
@@ -51,8 +44,7 @@ YArea::~YArea() {
    delete [] _sampleX;
    delete [] _sampleZ;
 
-   delete [] responseZ;
-   delete [] responseX;
+   delete [] response;
 }
 
 double** YArea::allocNeuronBank( unsigned neuronSize ) {
@@ -65,32 +57,43 @@ double** YArea::allocNeuronBank( unsigned neuronSize ) {
    return bank;
 }
 
-void YArea::randomizeBank( double **neuronBank, double (*randGen)(), unsigned size ) {
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      for ( unsigned j = 0; j < size; j++ ) {
-         neuronBank[i][j] = (*randGen)();
-      }
-   }
-
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      Vectors::norm( neuronBank[i], neuronBank[i], size );
-   }
-}
-
-void YArea::computePreresponse() {
-   // Find matching neuron and update it 
-   double bestFit = 0;
-
+void YArea::computePreresponse( bool isFrozen ) {
+   // Find matching neuron
    Vectors::copy( _sampleX, _x, _xSize );
    Vectors::copy( _sampleZ, _z, _zSize );
    
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      double xFit = Vectors::dot( _xNeurons[i], _sampleX, _xSize );
-      double zFit = Vectors::dot( _zNeurons[i], _sampleZ, _zSize );
+   if ( isFrozen || _numInitialized == _numNeurons ) {
+      double bestFit = 0;
+      for ( unsigned i = 0; i < _numInitialized; i++ ) {
+         double xFit = Vectors::dot( _xNeurons[i], _sampleX, _xSize );
+         double zFit = Vectors::dot( _zNeurons[i], _sampleZ, _zSize );
+         
+         if ( xFit + zFit > bestFit ) {
+            bestFit = xFit + zFit;
+            _neuronalMatch = i;
+         }
+      }
+   } else {
+      bool foundMatch = false;
+      for ( unsigned i = 0; i < _numInitialized; i++ ) {
+         double xFit = Vectors::dot( _xNeurons[i], _sampleX, _xSize );
+         double zFit = Vectors::dot( _zNeurons[i], _sampleZ, _zSize );
 
-      if ( xFit + zFit > bestFit ) {
-         bestFit = xFit + zFit;
-         _neuronalMatch = i;
+         // Smaller than epsilon
+         if ( 2.0 - ( xFit + zFit ) < 0.0000001 ) {
+            _neuronalMatch = i;
+            foundMatch = true;
+         }
+      }
+      
+      // Link is concatenated { Z(6), X(4) }
+
+      // TODO: move this into update routine
+      if ( !foundMatch ) {
+         _neuronalMatch = _numInitialized;
+         Vectors::copy( _xNeurons[_numInitialized], _sampleX, _xSize );
+         Vectors::copy( _zNeurons[_numInitialized], _sampleZ, _zSize );
+         _numInitialized++;
       }
    }
 }
@@ -99,7 +102,9 @@ void YArea::update( bool frozen ) {
    double* zWeights = _zNeurons[_neuronalMatch];
    double* xWeights = _xNeurons[_neuronalMatch];
 
-   if ( !frozen ) {
+   // Pretty good chance we won't encounter a situation
+   // in this homework where we hit this code.
+   if ( !frozen && _numInitialized == _numNeurons ) {
       // Update weight vectors for matched neuron
       double age = ++_neuronalAges[_neuronalMatch];
       double w1 = ( age - 1.0 ) / 1.0;
@@ -119,47 +124,51 @@ void YArea::update( bool frozen ) {
    }
 
    // Copy weights into response vectors
-   Vectors::copy( responseX, xWeights, _xSize );
-   Vectors::copy( responseZ, zWeights, _zSize );
+   Vectors::copy( response, xWeights, _xSize );
+   Vectors::copy( response + _xSize, zWeights, _zSize );
+
+   // Renormalize response from Y
+   Vectors::norm( response, response, _xSize + _zSize );
 }
 
-void YArea::writeToDatabase( ofstream* database ) {
-   database->write( (char*) &_numNeurons, sizeof(unsigned) );
-   database->write( (char*) &_xSize, sizeof(unsigned) );
+void YArea::writeToDatabase( ofstream &database ) {
+   database.write( (char*) &_numNeurons, sizeof(unsigned) );
+   database.write( (char*) &_numInitialized, sizeof(unsigned) );
+   database.write( (char*) &_xSize, sizeof(unsigned) );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      database->write( (char*) _xNeurons[i], sizeof(double) * _xSize );
+      database.write( (char*) _xNeurons[i], sizeof(double) * _xSize );
    }
 
-   database->write( (char*) &_zSize, sizeof(unsigned) );
+   database.write( (char*) &_zSize, sizeof(unsigned) );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      database->write( (char*) _zNeurons[i], sizeof(double) * _zSize );
+      database.write( (char*) _zNeurons[i], sizeof(double) * _zSize );
    }
 }
 
-YArea::YArea( ifstream* database, double* x, double* z ) {
-   database->read( (char*) &_numNeurons, sizeof(unsigned) );
+YArea::YArea( ifstream &database, double* x, double* z ) {
+   database.read( (char*) &_numNeurons, sizeof(unsigned) );
+   database.read( (char*) &_numInitialized, sizeof(unsigned) );
 
    _x = x;
    _z = z;
 
-   database->read( (char*) &_xSize, sizeof(unsigned) );
+   database.read( (char*) &_xSize, sizeof(unsigned) );
    _xNeurons = allocNeuronBank( _xSize );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      database->read( (char*) _xNeurons[i], sizeof(double) * _xSize );
+      database.read( (char*) _xNeurons[i], sizeof(double) * _xSize );
    }
 
-   database->read( (char*) &_zSize, sizeof(unsigned) );
+   database.read( (char*) &_zSize, sizeof(unsigned) );
    _zNeurons = allocNeuronBank( _zSize );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      database->read( (char*) _zNeurons[i], sizeof(double) * _zSize );
+      database.read( (char*) _zNeurons[i], sizeof(double) * _zSize );
    }
 
    _neuronalAges = new double[_numNeurons];
    _sampleX = new double[_xSize];
    _sampleZ = new double[_zSize];
 
-   responseZ = new double[_zSize];
-   responseX = new double[_xSize];
+   response = new double[_xSize + _zSize];
 }
 
 /**

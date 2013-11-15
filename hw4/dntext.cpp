@@ -37,53 +37,102 @@ int main( int argc, char** argv ) {
        exit( 1 );
    }
 
-   unsigned xResponseSize = (unsigned)ceil( log( VOCAB_SIZE ) / log( 2 ) );
+   const unsigned xResponseSize = (unsigned)ceil( log( VOCAB_SIZE ) / log( 2 ) );
 
-   // Training mode
    if ( settings.isTraining ) {
-      XArea  X( xResponseSize, VOCAB_SIZE );
-      double Z[FA_STATES];
-      YArea  Y( settings.numYNeurons, X.response, xResponseSize, Z, FA_STATES );
-      unsigned lastWordId = 0;
+      double X[xResponseSize];
+      double XNorm[xResponseSize];
+      ZArea  Z( FA_STATES );
+      YArea  Y( settings.numYNeurons, XNorm, xResponseSize, Z.response, FA_STATES );
 
-      X.setConnections( &lastWordId, Y.responseX );
+       // Y's response is the size of X + the size of Z
+      Z.setY( Y.response, xResponseSize + FA_STATES );
+
+      unsigned lastWordId = 0;
+      unsigned trainState = 0;
 
       ifstream trainingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
       while ( trainingFile.getline( fileName, FILENAME_MAX ) ) {
-         // Clear Z training before processing next file
-         Vectors::fill( Z, 0.0, FA_STATES );
+         printf( "Processing %s\n\n", fileName );
+
+         // Clear out Z to start each file
+         Vectors::fill( Z.response, 0.0, FA_STATES );
+         trainState = 0;
 
          Vocabulary vocab( fileName );
-         while( ( lastWordId = vocab.nextWordId() ) > 0 ) {
-            Vectors::print( X.response, xResponseSize );
-            printf( "\n" );
+         while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
+            XArea::encodeId( lastWordId, X, xResponseSize );
+            Vectors::norm( XNorm, X, xResponseSize );
 
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
-               X.computePreresponse();
-               Y.computePreresponse();
-
-               X.update();
-               Y.update();
-
                if ( d == 1 ) {
-                  printf( "Transitioning: " );
-                  Vectors::print( Z, FA_STATES );
-                  printf( " -> " );
-                  Transitions::updateState( Z, X.getResponseId() );
-                  Vectors::print( Z, FA_STATES );
-                  printf( "\n" );
+                  printf( "Transitioning: %d -> ", trainState );
+                  trainState = Transitions::getNextState( Z.response, XArea::decodeId( X, xResponseSize ) );
+                  printf( "%d\n\n", trainState );
                }
+
+               Y.computePreresponse();
+               Z.computePreresponse( trainState );
+
+               Y.update();
+               Z.update();
             }
          }
-
-         printf( "\n" );
       }
 
-   } 
-   // Testing mode
-   else {
-      // TODO: testing steps 
+      ofstream database( settings.networkFile, ios::binary | ios::out );
+      Z.writeToDatabase( database );
+      Y.writeToDatabase( database );
+      database.close();
+   } else {
+      double X[xResponseSize];
+      double XNorm[xResponseSize];
+      
+      ifstream database( settings.networkFile, ios::binary | ios::in );
+      ZArea  Z( database );
+      YArea  Y( database, XNorm, Z.response ); 
+      database.close();
+
+      Z.setY( Y.response );
+
+      unsigned lastWordId = 0;
+
+      ifstream testingFile( settings.listingFile );
+      char fileName[FILENAME_MAX];
+      while ( testingFile.getline( fileName, FILENAME_MAX ) ) {
+         printf( "Processing %s\n\n", fileName );
+
+         Vocabulary vocab( fileName );
+         while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
+            XArea::encodeId( lastWordId, X, xResponseSize );
+            Vectors::norm( XNorm, X, xResponseSize );
+
+            for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
+
+               Y.computePreresponse( true );
+               Z.computePreresponse();
+
+               Y.update( true );
+               Z.update();
+
+               // TODO: debug
+               unsigned zState = 0;
+               for ( unsigned i = 1; i < FA_STATES; i++ ) {
+                  if ( Z.response[i] > 0 ) {
+                     zState = i;
+                     break;
+                  }
+               }
+               if ( d == 0 ) {
+                  printf( "Transitioning: %d -> ", zState );
+               } else {
+                  printf( "%d\n\n", zState );
+               }
+               // TODO: debug
+            }
+         }
+      }
    }
 
    return 0;

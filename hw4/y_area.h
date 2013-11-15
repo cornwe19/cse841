@@ -14,21 +14,22 @@
 class YArea {
 public:
    YArea( unsigned numNeurons, double *x, const unsigned xSize, double *z, const unsigned zSize );
-   YArea( std::ifstream* database, double* x, double* z );
+   YArea( std::ifstream &database, double* x, double* z );
    ~YArea();
 
-   double* responseZ;
-   double* responseX;
+   double  *response;
 
-   void    computePreresponse();
+   void    computePreresponse( bool frozen = false );
    void    update( bool frozen = false );
 
-   void    writeToDatabase( std::ofstream* database );
+   void    writeToDatabase( std::ofstream &database );
    void    saveNeuronBank( const char* fileName, char neuronType, unsigned stride );
    void    saveAges( const char* fileName );
 
 private:
    unsigned _numNeurons;
+
+   unsigned _numInitialized;
 
    unsigned _xSize;
    double *_x;
@@ -47,7 +48,6 @@ private:
    double  *_neuronalAges;
 
    double** allocNeuronBank( unsigned neuronSize );
-   void     randomizeBank( double **neuronBank, double (*randGen)(), unsigned size );
 };
 
 #endif

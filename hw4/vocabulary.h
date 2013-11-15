@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-#define VOCAB_SIZE 10
+#define VOCAB_SIZE 11
 #define WORDSIZE_MAX 16
 
 class Vocabulary {
@@ -15,7 +15,7 @@ public:
 
    /** 
    * ID of next vocab word in file
-   * Note: a result of 0 means no words are left in the file
+   * Note: a result of VOCAB_SIZE means there is no more input
    **/
    unsigned nextWordId();
 
