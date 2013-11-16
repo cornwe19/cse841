@@ -2,6 +2,7 @@
 #include "vectors.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 #include <fstream>
 
 void ZArea::init( unsigned numNeurons ) {
@@ -13,7 +14,8 @@ void ZArea::init( unsigned numNeurons ) {
    _yNeurons = NULL;
 
    _neuronalMatch = 0;
-   _age = 0;
+   _ages = new double[_numNeurons];
+   Vectors::fill( _ages, 0.0, _numNeurons );
 
    response = new double[_numNeurons];
    Vectors::fill( response, 0.0, _numNeurons );
@@ -64,16 +66,27 @@ bool ZArea::computePreresponse( int trainIndex ) {
    Vectors::copy( _sampleY, _y, _ySize );
 
    if ( trainIndex < 0 ) {
+      printf( "Testing " );
+      Vectors::print( _sampleY, _ySize );
+      printf( "\n" );
+     
+      double normed[_ySize];
+
       // Search for best fit
       double bestFit = 0;
       for ( unsigned i = 0; i < _numNeurons; i++ ) {
-         double fit = Vectors::dot( _yNeurons[i], _sampleY, _ySize );
+         Vectors::norm( normed, _yNeurons[i], _ySize );
+         double fit = Vectors::dot( normed, _sampleY, _ySize );
 
          if ( fit > bestFit ) {
             bestFit = fit;
             _neuronalMatch = i;
          }
       }
+
+      printf( "Matched " );
+      Vectors::print( _yNeurons[_neuronalMatch], _ySize );
+      printf( "\n" );
    } else {
       _neuronalMatch = trainIndex;
    }
@@ -82,18 +95,15 @@ bool ZArea::computePreresponse( int trainIndex ) {
 }
 
 // Update the selected neuron with new frequency weights
-void ZArea::update() {
-   _age++;
-   for ( unsigned neuron = 0; neuron < _numNeurons; neuron++ ) {
+void ZArea::update( bool isFrozen ) {
+   if ( !isFrozen ) {
+      double* firing = _yNeurons[_neuronalMatch];
+      double  age    = _ages[_neuronalMatch];
       for ( unsigned i = 0; i < _ySize; i++ ) {
-         if ( neuron == _neuronalMatch ) {
-            _yNeurons[neuron][i] += _sampleY[i];
-         }
-
-          _yNeurons[neuron][i] = _yNeurons[neuron][i] / _age;
+         firing[i] = (age * firing[i]) / (age + 1) + ( ceil(_sampleY[i]) / (age+1) );
       }
 
-      Vectors::norm( _yNeurons[neuron], _yNeurons[neuron], _ySize );
+      _ages[_neuronalMatch]++;
    }
 
    Vectors::fill( response, 0.0, _numNeurons );
@@ -122,6 +132,12 @@ ZArea::ZArea( std::ifstream &database ) {
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
       _yNeurons[i] = new double[_ySize];
       database.read( (char*) _yNeurons[i], sizeof(double) * _ySize );
+   }
+
+   printf( "Z looks like:\n" );
+   for ( unsigned i = 0; i < _numNeurons; i++ ) {
+      Vectors::print( _yNeurons[i], _ySize );
+      printf( "\n" );
    }
 }
 

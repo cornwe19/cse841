@@ -23,7 +23,7 @@ public:
    double* response;
 
    bool computePreresponse( int trainIndex = - 1 );
-   void update();
+   void update( bool isFrozen = false );
 
    void writeToDatabase( std::ofstream &database );
 private:
@@ -32,7 +32,7 @@ private:
    double *_y;
    unsigned _ySize;
 
-   unsigned _age;
+   double *_ages;
    double **_yNeurons;
 
    void init( unsigned numNeurons );

@@ -39,6 +39,8 @@ int main( int argc, char** argv ) {
 
    const unsigned xResponseSize = (unsigned)ceil( log( VOCAB_SIZE ) / log( 2 ) );
 
+   ofstream results( settings.outputFile );
+
    if ( settings.isTraining ) {
       double X[xResponseSize];
       double XNorm[xResponseSize];
@@ -67,9 +69,9 @@ int main( int argc, char** argv ) {
 
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
                if ( d == 1 ) {
-                  printf( "Transitioning: %d -> ", trainState );
+                  results << "Transitioning: " << trainState << " -> ";
                   trainState = Transitions::getNextState( Z.response, XArea::decodeId( X, xResponseSize ) );
-                  printf( "%d\n\n", trainState );
+                  results << trainState << endl;
                }
 
                Y.computePreresponse();
@@ -96,7 +98,8 @@ int main( int argc, char** argv ) {
 
       Z.setY( Y.response );
 
-      unsigned lastWordId = 0;
+      unsigned   lastWordId = 0;
+      const bool frozen = true;
 
       ifstream testingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
@@ -110,11 +113,11 @@ int main( int argc, char** argv ) {
 
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
 
-               Y.computePreresponse( true );
+               Y.computePreresponse( frozen );
                Z.computePreresponse();
 
-               Y.update( true );
-               Z.update();
+               Y.update( frozen );
+               Z.update( frozen );
 
                // TODO: debug
                unsigned zState = 0;
@@ -125,15 +128,17 @@ int main( int argc, char** argv ) {
                   }
                }
                if ( d == 0 ) {
-                  printf( "Transitioning: %d -> ", zState );
+                  results << "Transitioning: " << zState << " -> ";
                } else {
-                  printf( "%d\n\n", zState );
+                  results << zState << endl;
                }
                // TODO: debug
             }
          }
       }
    }
+
+   results.close();
 
    return 0;
 }
