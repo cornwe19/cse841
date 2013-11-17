@@ -67,10 +67,6 @@ bool ZArea::computePreresponse( int trainIndex ) {
    Vectors::copy( _sampleY, _y, _ySize );
 
    if ( trainIndex < 0 ) {
-      printf( "Testing " );
-      Vectors::print( _sampleY, _ySize );
-      printf( "\n" );
-     
       double normed[_ySize];
 
       // Search for best fit
@@ -84,10 +80,6 @@ bool ZArea::computePreresponse( int trainIndex ) {
             _neuronalMatch = i;
          }
       }
-
-      printf( "Matched " );
-      Vectors::print( _yNeurons[_neuronalMatch], _ySize );
-      printf( "\n" );
    } else {
       _neuronalMatch = trainIndex;
    }

@@ -19,21 +19,38 @@ Vocabulary::~Vocabulary() {
    _file.close();
 }
 
-unsigned Vocabulary::nextWordId() {
+// Returns a result which may be 0 and an expected value which is non-zero
+//  - In the case of thinking, expected is the expected word and result is 0.
+unsigned Vocabulary::nextWordId( unsigned* expected ) {
    string word;
    _file >> word;
 
+   // Use a dummy variable for expectation if it wasn't set
+   unsigned dontCareExpectation;
+   if ( expected == NULL ) {
+      expected = &dontCareExpectation;
+   }
 
-   unsigned result = VOCAB_SIZE;
+   *expected = VOCAB_SIZE;
+
+   const char* test = word.c_str();
+   bool isThinking = word.c_str()[0] == '_';
+   if ( isThinking ) {
+      test++;
+   }
 
    if ( word.size() > 0  ) {
       for ( unsigned i = 0; i < VOCAB_SIZE; i++ ) {
-         if ( !strcmp( word.c_str(), VOCABULARY[i] ) ) {
-            result = i;
+         if ( !strcmp( test, VOCABULARY[i] ) ) {
+            *expected = i;
             break;
          }
       }
    }
-
-   return result;
+   
+   if ( isThinking ) {
+      return 0;
+   } else {
+      return *expected;
+   }
 }

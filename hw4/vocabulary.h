@@ -9,6 +9,7 @@
 #define VOCABULARY_H
 
 #include <fstream>
+#include <cstdlib>
 
 #define VOCAB_SIZE 11
 #define WORDSIZE_MAX 16
@@ -19,16 +20,15 @@ public:
    ~Vocabulary();
 
    static const char* VOCABULARY[VOCAB_SIZE];
-
+   unsigned unused;
    /** 
    * ID of next vocab word in file
    * Note: a result of VOCAB_SIZE means there is no more input
    **/
-   unsigned nextWordId();
+   unsigned nextWordId( unsigned* expected = NULL );
 
 private:
-   std::ifstream _file;
-   
+   std::ifstream   _file;
 };
 
 #endif

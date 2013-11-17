@@ -128,6 +128,7 @@ int main( int argc, char** argv ) {
       Z.setY( Y.response );
 
       unsigned   lastWordId = 0;
+      unsigned   expectedWordId = 0;
       const bool frozen = true;
 
       ifstream testingFile( settings.listingFile );
@@ -135,7 +136,7 @@ int main( int argc, char** argv ) {
       while ( testingFile.getline( fileName, FILENAME_MAX ) ) {
 
          Vocabulary vocab( fileName );
-         while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
+         while( ( lastWordId = vocab.nextWordId( &expectedWordId ) ) != VOCAB_SIZE ) {
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
                bool wasSupervised = X.computePreresponse( lastWordId );
                Y.computePreresponse( frozen );
@@ -145,11 +146,7 @@ int main( int argc, char** argv ) {
                Y.update( frozen );
                Z.update( frozen );
 
-               if ( d == 0 ) {
-                  results << "Transitioning: " << Z.getResponseState() << " -> ";
-               } else {
-                  results << Z.getResponseState() << endl;
-               }
+               results << X.getResponseId() << ", " << Z.getResponseState() << ", expX:" << expectedWordId << endl;
             }
          }
       }
