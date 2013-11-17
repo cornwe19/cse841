@@ -1,6 +1,7 @@
 #include "neuron_saver.h"
 #include "vectors.h"
 #include <fstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -49,7 +50,7 @@ void NeuronSaver::saveAges( const char* fileName, double* data, unsigned rows, u
 
    for ( unsigned row = 0; row < rows; row++ ) {
       for ( unsigned col = 0; col < cols; col++ ) {
-         ages << data[row+col] << '\t';
+         ages << setw( 2 ) << data[row+col] << '\t';
       }
       ages << endl;
    }
