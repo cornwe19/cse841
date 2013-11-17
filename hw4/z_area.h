@@ -1,8 +1,8 @@
 /*
 * Dennis Cornwell
-* Z area of the developmental network
-*  - Only used in testing while Z is free to read responses from Y
-*  - Only finds the top response from Y and reports it back to the caller
+* Z area of the developmental network. Uses frequency of state transitions to predict
+* future transitions in testing. During training, builds frequencies based on trained
+* neuron selection.
 */
 
 #ifndef Z_AREA_H
