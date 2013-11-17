@@ -57,8 +57,6 @@ int main( int argc, char** argv ) {
       ifstream trainingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
       while ( trainingFile.getline( fileName, FILENAME_MAX ) ) {
-         printf( "Processing %s\n\n", fileName );
-
          // Clear out Z to start each file
          Vectors::fill( Z.response, 0.0, FA_STATES );
          trainState = 0;
@@ -106,7 +104,6 @@ int main( int argc, char** argv ) {
       ifstream testingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
       while ( testingFile.getline( fileName, FILENAME_MAX ) ) {
-         printf( "Processing %s\n\n", fileName );
 
          Vocabulary vocab( fileName );
          while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {

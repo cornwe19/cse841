@@ -36,12 +36,9 @@ XArea::XArea( std::ifstream &database ) {
    _sampleY = new double[_ySize];
 
    _yNeurons = new double*[_numNeurons];
-   printf( "X looks like:\n" );
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
       _yNeurons[i] = new double[_ySize];
       database.read( (char*)_yNeurons[i], sizeof(double) * _ySize );
-      Vectors::print( _yNeurons[i], _ySize );
-      printf( "\n" );
    }
 }
 
@@ -71,7 +68,7 @@ void XArea::encodeId( unsigned id, double* dst, unsigned dstSize ) {
    Vectors::norm( dst, dst, dstSize );
 }
 
-// Convert from an optionally normalized binary representation of X to an ID
+// Convert from an potentially normalized binary representation of X to an ID
 unsigned XArea::decodeId( double* src, unsigned srcSize ) {
    unsigned id = 0;
 
@@ -149,9 +146,6 @@ void XArea::writeToDatabase( std::ofstream &database ) {
    database.write( (char*)&_ySize, sizeof(unsigned) );
    
    for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      printf( "Writing " );
-      Vectors::print( _yNeurons[i], _ySize );
-      printf( "\n" );
       database.write( (char*)_yNeurons[i], sizeof(double) * _ySize );
    }
 }

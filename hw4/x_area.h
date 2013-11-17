@@ -1,3 +1,10 @@
+/**
+* Dennis Cornwell
+* Implementation of an X area in the developmental network. While supervised, it forwards
+* samples from the environment learning the frequency at which one word follows another.
+* During thinking it uses those frequencies to predict missing input.
+**/
+
 #ifndef X_AREA_H
 #define X_AREA_H
 

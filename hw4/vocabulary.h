@@ -1,3 +1,10 @@
+/**
+* Dennis Cornwell
+* Defines a helper class for reading text files and mapping their input to a integer
+* index based vocabulary. Note that 0 means a blank was read and that the DN should 'think'
+* for itself.
+**/
+
 #ifndef VOCABULARY_H
 #define VOCABULARY_H
 

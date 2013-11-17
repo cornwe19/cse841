@@ -137,11 +137,5 @@ ZArea::ZArea( std::ifstream &database ) {
       _yNeurons[i] = new double[_ySize];
       database.read( (char*) _yNeurons[i], sizeof(double) * _ySize );
    }
-
-   printf( "Z looks like:\n" );
-   for ( unsigned i = 0; i < _numNeurons; i++ ) {
-      Vectors::print( _yNeurons[i], _ySize );
-      printf( "\n" );
-   }
 }
 

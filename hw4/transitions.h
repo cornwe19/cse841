@@ -1,6 +1,6 @@
 /**
 * Dennis Cornwell
-* Class used in traning only to transition the Z area from state to state as a response to
+* Class used in traning only to help transition the Z area from state to state as a response to
 * new X inputs. Holds a full mapping of the training state transition diagram.
 **/
 

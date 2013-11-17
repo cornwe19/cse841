@@ -27,7 +27,6 @@ unsigned Vocabulary::nextWordId() {
    unsigned result = VOCAB_SIZE;
 
    if ( word.size() > 0  ) {
-      printf( "Read word: '%s'\n", word.c_str() );
       for ( unsigned i = 0; i < VOCAB_SIZE; i++ ) {
          if ( !strcmp( word.c_str(), VOCABULARY[i] ) ) {
             result = i;
