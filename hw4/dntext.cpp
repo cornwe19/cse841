@@ -42,13 +42,14 @@ int main( int argc, char** argv ) {
    ofstream results( settings.outputFile );
 
    if ( settings.isTraining ) {
-      double X[xResponseSize];
-      double XNorm[xResponseSize];
+      // Training phase
+      XArea  X( xResponseSize, VOCAB_SIZE );
       ZArea  Z( FA_STATES );
-      YArea  Y( settings.numYNeurons, XNorm, xResponseSize, Z.response, FA_STATES );
+      YArea  Y( settings.numYNeurons, X.response, xResponseSize, Z.response, FA_STATES );
 
        // Y's response is the size of X + the size of Z
       Z.setY( Y.response, xResponseSize + FA_STATES );
+      X.setY( Y.response, xResponseSize + FA_STATES );
 
       unsigned lastWordId = 0;
       unsigned trainState = 0;
@@ -64,19 +65,18 @@ int main( int argc, char** argv ) {
 
          Vocabulary vocab( fileName );
          while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
-            XArea::encodeId( lastWordId, X, xResponseSize );
-            Vectors::norm( XNorm, X, xResponseSize );
-
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
                if ( d == 1 ) {
                   results << "Transitioning: " << trainState << " -> ";
-                  trainState = Transitions::getNextState( Z.response, XArea::decodeId( X, xResponseSize ) );
+                  trainState = Transitions::getNextState( Z.getResponseState(), X.getResponseId() );
                   results << trainState << endl;
                }
 
+               X.computePreresponse( lastWordId );
                Y.computePreresponse();
                Z.computePreresponse( trainState );
 
+               X.update();
                Y.update();
                Z.update();
             }
@@ -84,18 +84,20 @@ int main( int argc, char** argv ) {
       }
 
       ofstream database( settings.networkFile, ios::binary | ios::out );
+      X.writeToDatabase( database );
       Z.writeToDatabase( database );
       Y.writeToDatabase( database );
       database.close();
    } else {
-      double X[xResponseSize];
-      double XNorm[xResponseSize];
-      
+      // Testing phase
+      //  - Note thinking is handled automatically by passing '0' IDs into X
       ifstream database( settings.networkFile, ios::binary | ios::in );
+      XArea  X( database );
       ZArea  Z( database );
-      YArea  Y( database, XNorm, Z.response ); 
+      YArea  Y( database, X.response, Z.response ); 
       database.close();
 
+      X.setY( Y.response );
       Z.setY( Y.response );
 
       unsigned   lastWordId = 0;
@@ -108,14 +110,12 @@ int main( int argc, char** argv ) {
 
          Vocabulary vocab( fileName );
          while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
-            XArea::encodeId( lastWordId, X, xResponseSize );
-            Vectors::norm( XNorm, X, xResponseSize );
-
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
-
+               X.computePreresponse( lastWordId );
                Y.computePreresponse( frozen );
                Z.computePreresponse();
 
+               X.update();
                Y.update( frozen );
                Z.update( frozen );
 

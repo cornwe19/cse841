@@ -22,6 +22,8 @@ public:
 
    double* response;
 
+   unsigned getResponseState();
+
    bool computePreresponse( int trainIndex = - 1 );
    void update( bool isFrozen = false );
 

@@ -94,6 +94,10 @@ bool ZArea::computePreresponse( int trainIndex ) {
    return true;
 }
 
+unsigned ZArea::getResponseState() {
+   return _neuronalMatch;
+}
+
 // Update the selected neuron with new frequency weights
 void ZArea::update( bool isFrozen ) {
    if ( !isFrozen ) {
