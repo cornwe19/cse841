@@ -1,3 +1,9 @@
+/**
+* Dennis Cornwell
+* Helper class for saving out neuron information. Used by the various areas to save out
+* their neuron banks and ages
+**/
+
 #ifndef NEURON_SAVER_H
 #define NEURON_SAVER_H
 
