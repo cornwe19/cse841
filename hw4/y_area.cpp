@@ -98,11 +98,12 @@ void YArea::update( bool frozen ) {
    double* zWeights = _zNeurons[_neuronalMatch];
    double* xWeights = _xNeurons[_neuronalMatch];
 
+   double age = ++_neuronalAges[_neuronalMatch];
+   
    // Pretty good chance we won't encounter a situation
    // in this homework where we hit this code.
    if ( !frozen && _numInitialized == _numNeurons ) {
       // Update weight vectors for matched neuron
-      double age = ++_neuronalAges[_neuronalMatch];
       double w1 = ( age - 1.0 ) / 1.0;
       double w2 = 1.0 / age;
 
