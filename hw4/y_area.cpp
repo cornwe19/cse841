@@ -1,11 +1,10 @@
 #include "y_area.h"
 #include "vectors.h"
+#include "settings.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
 #include <cmath>
-
-#define WHITE 255
 
 using namespace std;
 
@@ -86,9 +85,6 @@ void YArea::computePreresponse( bool isFrozen ) {
          }
       }
       
-      // Link is concatenated { Z(6), X(4) }
-
-      // TODO: move this into update routine
       if ( !foundMatch ) {
          _neuronalMatch = _numInitialized;
          Vectors::copy( _xNeurons[_numInitialized], _sampleX, _xSize );
@@ -176,7 +172,7 @@ YArea::YArea( ifstream &database, double* x, double* z ) {
 * neuronType may be either 'X' or 'Z' referring to the X or Z neuron banks
 **/
 void YArea::saveNeuronBank( const char* fileName, char neuronType, unsigned stride ) {
-   ofstream stem( fileName, ios::binary );
+   ofstream out( fileName, ios::binary );
 
    unsigned size;
    double **neuronBank;
@@ -202,13 +198,13 @@ void YArea::saveNeuronBank( const char* fileName, char neuronType, unsigned stri
    unsigned totalHeight = imageHeight * rowsCols + padding;
 
    // Write out PGM header
-   stem << "P5" << endl;
-   stem << totalStride << endl;
-   stem << totalHeight << endl;
-   stem << WHITE << endl;
+   out << "P5" << endl;
+   out << totalStride << endl;
+   out << totalHeight << endl;
+   out << IMG_WHITE << endl;
 
    char horizSpacer[totalStride];
-   Vectors::fill( horizSpacer, (char)WHITE, totalStride );
+   Vectors::fill( horizSpacer, (char)IMG_BLACK, totalStride );
 
    for ( unsigned row = 0; row < rowsCols; row++ ) {
       char rowImages[rowsCols][size];
@@ -218,18 +214,18 @@ void YArea::saveNeuronBank( const char* fileName, char neuronType, unsigned stri
 
       for ( unsigned line = 0; line < imageHeight; line++ ) {
          for ( unsigned image = 0; image < rowsCols - 1; image++ ) {
-            stem.write( rowImages[image] + line, stride );
-            stem.put( WHITE );
+            out.write( rowImages[image] + line, stride );
+            out.put( IMG_BLACK );
          }
-         stem.write( rowImages[rowsCols - 1], stride );
+         out.write( rowImages[rowsCols - 1] + line, stride );
       }
       
       if ( row != rowsCols - 1 ) { // Skip trailing spacer
-         stem.write( horizSpacer, totalStride );
+         out.write( horizSpacer, totalStride );
       }
    }
 
-   stem.close();
+   out.close();
 }
 
 void YArea::saveAges( const char* fileName ) {

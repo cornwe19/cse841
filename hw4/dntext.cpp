@@ -86,6 +86,19 @@ int main( int argc, char** argv ) {
       Z.writeToDatabase( database );
       Y.writeToDatabase( database );
       database.close();
+
+      char fileXY[FILENAME_MAX];
+      sprintf( fileXY, "%s-xy.pgm", settings.outputFile );
+      Y.saveNeuronBank( fileXY, 'X', 2 );
+      
+      char fileZY[FILENAME_MAX];
+      sprintf( fileZY, "%s-zy.pgm", settings.outputFile );
+      Y.saveNeuronBank( fileZY, 'Z', 2 );
+
+      char fileYZ[FILENAME_MAX];
+      sprintf( fileYZ, "%s-yz.pgm", settings.outputFile );
+      Z.saveNeuronBank( fileYZ, 2 );
+      
    } else {
       // Testing phase
       //  - Note thinking is handled automatically by passing '0' IDs into X

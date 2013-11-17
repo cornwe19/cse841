@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define IMG_WHITE 255
+#define IMG_BLACK 0
+
 #define ERROR_MAX 128
 
 class Settings {
