@@ -98,6 +98,10 @@ int main( int argc, char** argv ) {
       char fileYZ[FILENAME_MAX];
       sprintf( fileYZ, "%s-yz.pgm", settings.outputFile );
       Z.saveNeuronBank( fileYZ, 2 );
+
+      char fileYX[FILENAME_MAX];
+      sprintf( fileYX, "%s-yx.pgm", settings.outputFile );
+      X.saveNeuronBank( fileYX, 2 );
       
    } else {
       // Testing phase
