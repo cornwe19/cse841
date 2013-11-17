@@ -95,6 +95,10 @@ int main( int argc, char** argv ) {
       sprintf( fileZY, "%s-zy.pgm", settings.outputFile );
       Y.saveNeuronBank( fileZY, 'Z', 2 );
 
+      char fileAY[FILENAME_MAX];
+      sprintf( fileAY, "%s-ay.txt", settings.outputFile );
+      Y.saveAges( fileAY );
+
       char fileYZ[FILENAME_MAX];
       sprintf( fileYZ, "%s-yz.pgm", settings.outputFile );
       Z.saveNeuronBank( fileYZ, 2 );

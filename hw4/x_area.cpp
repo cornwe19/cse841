@@ -1,6 +1,6 @@
 #include "x_area.h"
 #include "vectors.h"
-#include "pgm.h"
+#include "neuron_saver.h"
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
@@ -158,7 +158,7 @@ void XArea::saveNeuronBank( const char* fileName, unsigned stride ) {
    // Skip the unused blank neuron in the 0 slot
    double** neuronBank = &_yNeurons[1];
 
-   PGM::saveAggregateImage( fileName, neuronBank, _ySize, rows, cols, stride );
+   NeuronSaver::saveAggregateImage( fileName, neuronBank, _ySize, rows, cols, stride );
 }
 
 

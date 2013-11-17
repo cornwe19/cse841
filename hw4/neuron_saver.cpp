@@ -1,10 +1,10 @@
-#include "pgm.h"
+#include "neuron_saver.h"
 #include "vectors.h"
 #include <fstream>
 
 using namespace std;
 
-void PGM::saveAggregateImage( const char* fileName, double** data, unsigned singleImageSize, unsigned rows, unsigned cols, unsigned stride ) {
+void NeuronSaver::saveAggregateImage( const char* fileName, double** data, unsigned singleImageSize, unsigned rows, unsigned cols, unsigned stride ) {
    ofstream out( fileName, ios::binary );
    
    unsigned vpad = rows - 1;
@@ -42,5 +42,18 @@ void PGM::saveAggregateImage( const char* fileName, double** data, unsigned sing
    }
 
    out.close();
+}
+
+void NeuronSaver::saveAges( const char* fileName, double* data, unsigned rows, unsigned cols ) {
+   ofstream ages( fileName );
+
+   for ( unsigned row = 0; row < rows; row++ ) {
+      for ( unsigned col = 0; col < cols; col++ ) {
+         ages << data[row+col] << '\t';
+      }
+      ages << endl;
+   }
+
+   ages.close();
 }
 

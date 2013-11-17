@@ -1,6 +1,6 @@
 #include "y_area.h"
 #include "vectors.h"
-#include "pgm.h"
+#include "neuron_saver.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
@@ -193,21 +193,12 @@ void YArea::saveNeuronBank( const char* fileName, char neuronType, unsigned stri
 
    unsigned rowsCols = (unsigned) sqrt( _numNeurons );
   
-   PGM::saveAggregateImage( fileName, neuronBank, size, rowsCols, rowsCols, stride );
+   NeuronSaver::saveAggregateImage( fileName, neuronBank, size, rowsCols, rowsCols, stride );
 }
 
 void YArea::saveAges( const char* fileName ) {
-   ofstream ages( fileName );
-   
    unsigned rowsCols = (unsigned) sqrt( _numNeurons );
-
-   for ( unsigned row = 0; row < rowsCols; row++ ) {
-      for ( unsigned col = 0; col < rowsCols; col++ ) {
-         ages << _neuronalAges[row+col] << '\t';
-      }
-      ages << endl;
-   }
-
-   ages.close();
+   
+   NeuronSaver::saveAges( fileName, _neuronalAges, rowsCols, rowsCols );
 }
 

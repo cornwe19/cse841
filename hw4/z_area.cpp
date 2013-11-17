@@ -1,6 +1,6 @@
 #include "z_area.h"
 #include "vectors.h"
-#include "pgm.h"
+#include "neuron_saver.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
@@ -144,6 +144,6 @@ void ZArea::saveNeuronBank( const char* fileName, unsigned stride ) {
    unsigned rows = _numNeurons / 3;
    unsigned cols = _numNeurons / 2;
    
-   PGM::saveAggregateImage( fileName, _yNeurons, _ySize, rows, cols, stride );
+   NeuronSaver::saveAggregateImage( fileName, _yNeurons, _ySize, rows, cols, stride );
 }
 
