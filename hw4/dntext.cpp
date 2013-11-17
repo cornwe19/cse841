@@ -119,20 +119,11 @@ int main( int argc, char** argv ) {
                Y.update( frozen );
                Z.update( frozen );
 
-               // TODO: debug
-               unsigned zState = 0;
-               for ( unsigned i = 1; i < FA_STATES; i++ ) {
-                  if ( Z.response[i] > 0 ) {
-                     zState = i;
-                     break;
-                  }
-               }
                if ( d == 0 ) {
-                  results << "Transitioning: " << zState << " -> ";
+                  results << "Transitioning: " << Z.getResponseState() << " -> ";
                } else {
-                  results << zState << endl;
+                  results << Z.getResponseState() << endl;
                }
-               // TODO: debug
             }
          }
       }
