@@ -87,6 +87,14 @@ int main( int argc, char** argv ) {
       Y.writeToDatabase( database );
       database.close();
 
+      char fileYX[FILENAME_MAX];
+      sprintf( fileYX, "%s-yx.pgm", settings.outputFile );
+      X.saveNeuronBank( fileYX, 2 );
+
+      char fileAX[FILENAME_MAX];
+      sprintf( fileAX, "%s-ax.txt", settings.outputFile );
+      X.saveAges( fileAX );
+
       char fileXY[FILENAME_MAX];
       sprintf( fileXY, "%s-xy.pgm", settings.outputFile );
       Y.saveNeuronBank( fileXY, 'X', 2 );
@@ -106,10 +114,6 @@ int main( int argc, char** argv ) {
       char fileAZ[FILENAME_MAX];
       sprintf( fileAZ, "%s-az.txt", settings.outputFile );
       Z.saveAges( fileAZ );
-
-      char fileYX[FILENAME_MAX];
-      sprintf( fileYX, "%s-yx.pgm", settings.outputFile );
-      X.saveNeuronBank( fileYX, 2 );
       
    } else {
       // Testing phase

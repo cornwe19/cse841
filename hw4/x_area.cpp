@@ -161,4 +161,10 @@ void XArea::saveNeuronBank( const char* fileName, unsigned stride ) {
    NeuronSaver::saveAggregateImage( fileName, neuronBank, _ySize, rows, cols, stride );
 }
 
+void XArea::saveAges( const char* fileName ) {
+   unsigned rows = _numNeurons / 5;
+   unsigned cols = _numNeurons / 2;
+
+   NeuronSaver::saveAges( fileName, _ages + 1, rows, cols ); 
+}
 
