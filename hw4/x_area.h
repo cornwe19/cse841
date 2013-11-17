@@ -18,7 +18,7 @@ public:
    static unsigned decodeId( double* src, unsigned srcSize );
 
    bool computePreresponse( unsigned id );
-   void update();
+   void update( bool wasSupervised = true );
 
    void writeToDatabase( std::ofstream &database );
 

@@ -101,13 +101,11 @@ void XArea::setY( double* y ) {
 }
 
 bool XArea::computePreresponse( unsigned id ) {
-   if ( _y == NULL ) {
-      return false;
-   }
-
    Vectors::copy( _sampleY, _y, _ySize );
 
+   bool wasSupervised = true;
    if ( id > 0  ) {
+      // Just use the supervised ID
       _neuronalMatch = id; 
    } else {
       // Thinking mode. Estimate next X
@@ -122,22 +120,26 @@ bool XArea::computePreresponse( unsigned id ) {
             _neuronalMatch = i;
          }
       }
+      wasSupervised = false;
    }
 
    // Propogate current X immediately
    encodeId( _neuronalMatch, response, _responseSize );
 
-   return true; 
+   return wasSupervised; 
 }
 
-void XArea::update() {
-   double* firing = _yNeurons[_neuronalMatch];
-   double  age    = _ages[_neuronalMatch];
-   for ( unsigned i = 0; i < _ySize; i++ ) {
-      firing[i] = (age * firing[i]) / (age + 1) + ( ceil(_sampleY[i]) / (age+1) );
-   }
+void XArea::update( bool wasSupervised ) {
+   // Only learn from input when we didn't guess it ourselves
+   if ( wasSupervised ) {
+      double* firing = _yNeurons[_neuronalMatch];
+      double  age    = _ages[_neuronalMatch];
+      for ( unsigned i = 0; i < _ySize; i++ ) {
+         firing[i] = (age * firing[i]) / (age + 1) + ( ceil(_sampleY[i]) / (age+1) );
+      }
 
-   _ages[_neuronalMatch]++;
+      _ages[_neuronalMatch]++;
+   }
 }
 
 void XArea::writeToDatabase( std::ofstream &database ) {

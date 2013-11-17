@@ -111,11 +111,11 @@ int main( int argc, char** argv ) {
          Vocabulary vocab( fileName );
          while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
             for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
-               X.computePreresponse( lastWordId );
+               bool wasSupervised = X.computePreresponse( lastWordId );
                Y.computePreresponse( frozen );
                Z.computePreresponse();
 
-               X.update();
+               X.update( wasSupervised );
                Y.update( frozen );
                Z.update( frozen );
 
