@@ -1,12 +1,10 @@
 #include "z_area.h"
 #include "vectors.h"
-#include "settings.h"
+#include "pgm.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
 #include <fstream>
-
-using namespace std;
 
 void ZArea::init( unsigned numNeurons ) {
    _numNeurons = numNeurons;
@@ -143,44 +141,9 @@ ZArea::ZArea( std::ifstream &database ) {
 }
 
 void ZArea::saveNeuronBank( const char* fileName, unsigned stride ) {
-   ofstream out( fileName, ios::binary );
-   
    unsigned rows = _numNeurons / 3;
    unsigned cols = _numNeurons / 2;
-   unsigned vpad = rows - 1;
-   unsigned hpad = cols - 1;
-   unsigned totalStride = stride * cols + hpad;
-   unsigned imageHeight = _ySize / stride;
-   unsigned totalHeight = imageHeight * rows + vpad;
-
-   // Write out PGM header
-   out << "P5" << endl;
-   out << totalStride << endl;
-   out << totalHeight << endl;
-   out << IMG_WHITE << endl;
-
-   char horizSpacer[totalStride];
-   Vectors::fill( horizSpacer, (char)IMG_BLACK, totalStride );
-
-   for ( unsigned row = 0; row < rows; row++ ) {
-      char rowImages[rows][_ySize];
-      for ( unsigned col = 0; col < cols; col++ ) {
-         Vectors::scaleTo255( rowImages[col], _yNeurons[row+col], _ySize );
-      }
-
-      for ( unsigned line = 0; line < imageHeight; line++ ) {
-         for ( unsigned image = 0; image < cols - 1; image++ ) {
-            out.write( rowImages[image] + line, stride );
-            out.put( IMG_BLACK );
-         }
-         out.write( rowImages[cols - 1] + line, stride );
-      }
-      
-      if ( row != rows - 1 ) { // Skip trailing spacer
-         out.write( horizSpacer, totalStride );
-      }
-   }
-
-   out.close();
+   
+   PGM::saveAggregateImage( fileName, _yNeurons, _ySize, rows, cols, stride );
 }
 
