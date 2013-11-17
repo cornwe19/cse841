@@ -1,0 +1,27 @@
+Script started on Sun Nov 17 15:41:16 2013
+<129 arctic:~/cse841/hw4 >make
+mkdir -p bin
+g++ -c x_area.cpp -Wall -o bin/x_area.o
+g++ -c y_area.cpp -Wall -o bin/y_area.o
+g++ -c z_area.cpp -Wall -o bin/z_area.o
+g++ -c neuron_saver.cpp -Wall -o bin/neuron_saver.o
+g++ -c vocabulary.cpp -Wall -o bin/vocabulary.o
+g++ -c vectors.cpp -Wall -o bin/vectors.o
+g++ dntext.cpp -Wall bin/* -o dntext
+<130 arctic:~/cse841/hw4 >./runtests.sh 
++ ./dntext -d db.dat -f DN1.txt -o synapse1 -Y 8 -l
++ ./dntext -d db.dat -f DN1.txt -o results1.txt
++ ./dntext -d db.dat -f DN1.think.txt -o results1.think.txt
++ set +x
++ ./dntext -d db.dat -f DN2.txt -o synapse2 -Y 8 -l
++ ./dntext -d db.dat -f DN2.txt -o results2.txt
++ ./dntext -d db.dat -f DN2.think.txt -o results2.think.txt
++ set +x
++ ./dntext -d db.dat -f DN3.txt -o synapse3 -Y 8 -l
++ ./dntext -d db.dat -f DN3.txt -o results3.txt
++ ./dntext -d db.dat -f DN3.think.txt -o results3.think.txt
++ set +x
+<131 arctic:~/cse841/hw4 >exit
+exit
+
+Script done on Sun Nov 17 15:41:30 2013
