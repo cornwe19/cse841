@@ -1,8 +1,9 @@
 /**
 * Dennis Cornwell
-* Developmental Network implementation with two modes:
-*  - Training: Z is supervised, X is strictly input and Y is free to learn from both
-*  - Testing: Z is free, X is strictly input and Y is locked (does not adapt, just updates response)
+* Developmental Network implementation with three modes:
+*  - Training: X and Z are supervised, Y provides a perfect link between them
+*  - Testing: X is supervised, Z provides estimated states based on training
+*  - Thinking: X is partially supervised and provides estimates on missing words. Z provides estimated states based on training
 **/
 
 #include <stdio.h>
@@ -39,7 +40,6 @@ int main( int argc, char** argv ) {
 
    const unsigned xResponseSize = (unsigned)ceil( log( VOCAB_SIZE ) / log( 2 ) );
 
-   ofstream results( settings.outputFile );
 
    if ( settings.isTraining ) {
       // Training phase
@@ -54,30 +54,24 @@ int main( int argc, char** argv ) {
       unsigned lastWordId = 0;
       unsigned trainState = 0;
 
-      ifstream trainingFile( settings.listingFile );
-      char fileName[FILENAME_MAX];
-      while ( trainingFile.getline( fileName, FILENAME_MAX ) ) {
-         // Clear out Z to start each file
-         Vectors::fill( Z.response, 0.0, FA_STATES );
-         trainState = 0;
+      // Init Z for training 
+      Vectors::fill( Z.response, 0.0, FA_STATES );
+      trainState = 0;
 
-         Vocabulary vocab( fileName );
-         while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
-            for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
-               if ( d == 1 ) {
-                  results << "Transitioning: " << trainState << " -> ";
-                  trainState = Transitions::getNextState( Z.getResponseState(), X.getResponseId() );
-                  results << trainState << endl;
-               }
-
-               X.computePreresponse( lastWordId );
-               Y.computePreresponse();
-               Z.computePreresponse( trainState );
-
-               X.update();
-               Y.update();
-               Z.update();
+      Vocabulary vocab( settings.listingFile );
+      while( ( lastWordId = vocab.nextWordId() ) != VOCAB_SIZE ) {
+         for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
+            if ( d == 1 ) {
+               trainState = Transitions::getNextState( Z.getResponseState(), X.getResponseId() );
             }
+
+            X.computePreresponse( lastWordId );
+            Y.computePreresponse();
+            Z.computePreresponse( trainState );
+
+            X.update();
+            Y.update();
+            Z.update();
          }
       }
 
@@ -136,39 +130,36 @@ int main( int argc, char** argv ) {
 
       double     numIterations = 0;
       double     numCorrect = 0;
+      
+      ofstream results( settings.outputFile );
 
-      ifstream testingFile( settings.listingFile );
-      char fileName[FILENAME_MAX];
-      while ( testingFile.getline( fileName, FILENAME_MAX ) ) {
+      Vocabulary vocab( settings.listingFile );
+      while( ( lastWordId = vocab.nextWordId( &expectedWordId ) ) != VOCAB_SIZE ) {
+         for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
+            bool wasSupervised = X.computePreresponse( lastWordId );
+            Y.computePreresponse( frozen );
+            Z.computePreresponse();
 
-         Vocabulary vocab( fileName );
-         while( ( lastWordId = vocab.nextWordId( &expectedWordId ) ) != VOCAB_SIZE ) {
-            for ( unsigned d = 0; d < SAMPLE_DURATION; d++ ) {
-               bool wasSupervised = X.computePreresponse( lastWordId );
-               Y.computePreresponse( frozen );
-               Z.computePreresponse();
+            X.update( wasSupervised );
+            Y.update( frozen );
+            Z.update( frozen );
 
-               X.update( wasSupervised );
-               Y.update( frozen );
-               Z.update( frozen );
-
-               if ( d == 1 ) {
-                  expectedState = Transitions::getNextState( lastState, expectedWordId );
-                  lastState = Z.getResponseState();
-               }
-
-               bool isCorrect = X.getResponseId() == expectedWordId && Z.getResponseState() == expectedState;
-               results << X.getResponseId() << ", " << Z.getResponseState() << ", " << ( isCorrect ? "Y" : "N" ) << endl;
-               numCorrect += isCorrect ? 1 : 0;
-               numIterations++;
+            if ( d == 1 ) {
+               expectedState = Transitions::getNextState( lastState, expectedWordId );
+               lastState = Z.getResponseState();
             }
+
+            bool isCorrect = X.getResponseId() == expectedWordId && Z.getResponseState() == expectedState;
+            results << X.getResponseId() << ", " << Z.getResponseState() << ", " << ( isCorrect ? "Y" : "N" ) << endl;
+            numCorrect += isCorrect ? 1 : 0;
+            numIterations++;
          }
       }
 
       results << "Error rate: " << setprecision( 3 ) << ( 1 - ( numCorrect / numIterations ) ) * 100 << "%" << endl;
+      results.close();
    }
 
-   results.close();
 
    return 0;
 }
