@@ -141,9 +141,16 @@ ZArea::ZArea( std::ifstream &database ) {
 }
 
 void ZArea::saveNeuronBank( const char* fileName, unsigned stride ) {
-   unsigned rows = _numNeurons / 3;
-   unsigned cols = _numNeurons / 2;
+   unsigned rows = _numNeurons / 2;
+   unsigned cols = _numNeurons / 3;
    
    NeuronSaver::saveAggregateImage( fileName, _yNeurons, _ySize, rows, cols, stride );
+}
+
+void ZArea::saveAges( const char* fileName ) {
+   unsigned rows = _numNeurons / 2;
+   unsigned cols = _numNeurons / 3;
+
+   NeuronSaver::saveAges( fileName, _ages, rows, cols ); 
 }
 

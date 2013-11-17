@@ -29,6 +29,7 @@ public:
 
    void writeToDatabase( std::ofstream &database );
    void saveNeuronBank( const char* fileName, unsigned stride );
+   void saveAges( const char* fileName );
 private:
    unsigned _numNeurons;
 
