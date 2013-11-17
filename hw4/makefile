@@ -14,7 +14,7 @@ vectors: mkdirs vectors.h vectors.cpp
 	g++ -c vectors.cpp -Wall -o bin/vectors.o
 
 neuron_saver: mkdirs neuron_saver.h neuron_saver.cpp
-	g++ -c neuron_saver.cpp -Wall -o bin/pgm.o
+	g++ -c neuron_saver.cpp -Wall -o bin/neuron_saver.o
 
 vocabulary: mkdirs vocabulary.h vocabulary.cpp
 	g++ -c vocabulary.cpp -Wall -o bin/vocabulary.o

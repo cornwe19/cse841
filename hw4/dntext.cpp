@@ -128,8 +128,14 @@ int main( int argc, char** argv ) {
       Z.setY( Y.response );
 
       unsigned   lastWordId = 0;
-      unsigned   expectedWordId = 0;
       const bool frozen = true;
+      unsigned   lastState = 0;
+
+      unsigned   expectedWordId = 0;
+      unsigned   expectedState = 0;
+
+      double     numIterations = 0;
+      double     numCorrect = 0;
 
       ifstream testingFile( settings.listingFile );
       char fileName[FILENAME_MAX];
@@ -146,10 +152,20 @@ int main( int argc, char** argv ) {
                Y.update( frozen );
                Z.update( frozen );
 
-               results << X.getResponseId() << ", " << Z.getResponseState() << ", expX:" << expectedWordId << endl;
+               if ( d == 1 ) {
+                  expectedState = Transitions::getNextState( lastState, expectedWordId );
+                  lastState = Z.getResponseState();
+               }
+
+               bool isCorrect = X.getResponseId() == expectedWordId && Z.getResponseState() == expectedState;
+               results << X.getResponseId() << ", " << Z.getResponseState() << ", " << ( isCorrect ? "Y" : "N" ) << endl;
+               numCorrect += isCorrect ? 1 : 0;
+               numIterations++;
             }
          }
       }
+
+      results << "Error rate: " << setprecision( 3 ) << ( 1 - ( numCorrect / numIterations ) ) * 100 << "%" << endl;
    }
 
    results.close();
