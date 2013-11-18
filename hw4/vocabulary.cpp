@@ -1,6 +1,7 @@
 #include "vocabulary.h"
 #include <fstream>
 #include <string>
+#include <cstring>
 
 using namespace std;
 
