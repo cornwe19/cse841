@@ -1,0 +1,8 @@
+# binary files
+Build/
+DN
+
+# vim temp files
+*.swp
+
+
