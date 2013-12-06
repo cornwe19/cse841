@@ -6,7 +6,7 @@
 
 #include "developmentalnetwork.hpp"
 
-DevelopmentalNetwork::DevelopmentalNetwork(unsigned hiddenNeuronCap, string outputFileStem)
+DevelopmentalNetwork::DevelopmentalNetwork( unsigned hiddenNeuronCap )
 {
 	Vector normedStartingOutput(_translator.translateOutput("z1"));
 	normedStartingOutput /= normedStartingOutput.calculateNorm();
@@ -17,7 +17,6 @@ DevelopmentalNetwork::DevelopmentalNetwork(unsigned hiddenNeuronCap, string outp
 	_inputLayer = new Vector(_translator.getNumberOfInputNeurons());
 	
 	_hiddenNeuronCap = hiddenNeuronCap;
-	_outputFileStem = outputFileStem;
 }
 
 DevelopmentalNetwork::~DevelopmentalNetwork()
@@ -120,48 +119,29 @@ void DevelopmentalNetwork::load(string sourceFileName)
 
 
 
-void DevelopmentalNetwork::process(string sourceFileName, bool isTraining)
+void DevelopmentalNetwork::process()
 {
-	ifstream sourceFile(sourceFileName.c_str());
 	
 	vector<string> words;
-	string line;
-	string word;
-
-	while(getline(sourceFile, line))
+   string input, output;
+	while ( true )
 	{
-		word = "";
-		
-		for (unsigned i = 0; i < line.length(); ++i)
+		cin >> input >> output;
+		if ( input.compare( "q" ) == 0 )
 		{
-			if (line[i] == ' ')
-			{
-				if (word != "")
-				{
-					words.push_back(word);
-				
-					word = "";
-				}
-			}
-			else
-			{
-				word += line[i];
-			}
+			break;
 		}
-		
-		if (word != "")
+		else
 		{
-			words.push_back(word);
+			words.push_back( input );
 		}
 	}
-	
-	sourceFile.close();
 	
 	for (unsigned i = 0; i < words.size(); ++i)
 	{
 		cout << "Processing word: " << words[i] << endl;
 		
-		processInput(words[i], isTraining);
+		processInput(words[i], output.compare( "_" ) != 0 );
 		
 		Vector* nearestCurrentOutput = new Vector(
 			_translator.findNearestActualOutput(_outputLayer.currentOutput));

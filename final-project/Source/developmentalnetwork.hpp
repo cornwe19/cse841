@@ -17,13 +17,13 @@ using namespace std;
 class DevelopmentalNetwork
 {
 public:
-	DevelopmentalNetwork(unsigned hiddenNeuronCap, string outputFileStem);
+	DevelopmentalNetwork(unsigned hiddenNeuronCap);
 	~DevelopmentalNetwork();
 	
 	void save(string destinationFileName);
 	void load(string sourceFileName);
 	
-	void process(string sourceFileName, bool isTraining);
+	void process();
 	
 	void printHiddenLayer() const;
 
@@ -56,7 +56,6 @@ private:
 	Vector* _inputLayer;
 	
 	NetworkTranslator _translator;
-	string _outputFileStem;
 	unsigned _hiddenNeuronCap;
 };
 
