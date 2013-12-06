@@ -121,27 +121,20 @@ void DevelopmentalNetwork::load(string sourceFileName)
 
 void DevelopmentalNetwork::process()
 {
-	
-	vector<string> words;
    string input, output;
-	while ( true )
+	
+	while (true)
 	{
 		cin >> input >> output;
 		if ( input.compare( "q" ) == 0 )
 		{
 			break;
 		}
-		else
-		{
-			words.push_back( input );
-		}
-	}
-	
-	for (unsigned i = 0; i < words.size(); ++i)
-	{
-		cout << "Processing word: " << words[i] << endl;
+
+		cout << "Processing word: " << input << endl;
 		
-		processInput(words[i], output.compare( "_" ) != 0 );
+		bool isTraining = output.compare( "_" ) != 0;
+		processInput( input, isTraining );
 		
 		Vector* nearestCurrentOutput = new Vector(
 			_translator.findNearestActualOutput(_outputLayer.currentOutput));
