@@ -5,6 +5,7 @@
  */
 
 #include "developmentalnetwork.hpp"
+#include <sstream>
 
 DevelopmentalNetwork::DevelopmentalNetwork( unsigned hiddenNeuronCap )
 {
@@ -121,21 +122,34 @@ void DevelopmentalNetwork::load(string sourceFileName)
 
 void DevelopmentalNetwork::process()
 {
-   string input, output;
-	
-	while (true)
+	while ( true )
 	{
-		cin >> input >> output;
+		string line, input, output;
+		getline( cin, line );
+
+		size_t split = line.find( ' ' );
+		input = line.substr( 0, split );
+
+		if ( split < line.size() ) 
+		{
+			output = line.substr( split, line.size() );
+		}
+		else
+		{
+			output = "_";
+		}
+
 		if ( input.compare( "q" ) == 0 )
 		{
+			cout << "Exiting..." << endl;
 			break;
 		}
 
-		cout << "Processing word: " << input << endl;
-		
 		bool isTraining = output.compare( "_" ) != 0;
-		processInput( input, isTraining );
+		cout << "Processing input: " << input << ( isTraining ? " (training)" : "" ) << endl;
 		
+		processInput( input, isTraining );
+
 		Vector* nearestCurrentOutput = new Vector(
 			_translator.findNearestActualOutput(_outputLayer.currentOutput));
 		Vector* nearestNextOutput = new Vector(
