@@ -5,7 +5,8 @@
  */
 
 #include "developmentalnetwork.hpp"
-#include <sstream>
+#include <sys/select.h>
+#include <sys/types.h>
 
 DevelopmentalNetwork::DevelopmentalNetwork( unsigned hiddenNeuronCap )
 {
@@ -122,31 +123,63 @@ void DevelopmentalNetwork::load(string sourceFileName)
 
 void DevelopmentalNetwork::process()
 {
+	fd_set readset;
+	FD_ZERO( &readset );
+
+	timeval  userTimeout;
+	userTimeout.tv_sec = 5; // Give the user 5 seconds to enter some input
+
+	timeval* timeout = NULL;
+	
 	while ( true )
 	{
-		string line, input, output;
-		getline( cin, line );
+		FD_SET( 0, &readset ); // Wait on stdin
+		unsigned fd_max = 1; // 1 + largest fd to wait on
 
-		size_t split = line.find( ' ' );
-		input = line.substr( 0, split );
-
-		if ( split < line.size() ) 
+		string input, output;
+		
+		if ( select( fd_max, &readset, NULL, NULL, timeout ) != 0 )
 		{
-			output = line.substr( split, line.size() );
+			// User entered input, read it and run it through the DN
+			string line;
+			getline( cin, line );
+
+			size_t split = line.find( ' ' );
+			input = line.substr( 0, split );
+
+			if ( split < line.size() ) 
+			{
+			   output = line.substr( split, line.size() );
+			}
+			else
+			{
+			   output = "_";
+			}
+
+			if ( input.compare( "q" ) == 0 )
+			{
+			   cout << "Exiting..." << endl;
+			   break;
+			}
 		}
 		else
 		{
-			output = "_";
+			 // We timed out, let the machine think freely
+			 input = "_";
+			 output = "_";
 		}
 
-		if ( input.compare( "q" ) == 0 )
-		{
-			cout << "Exiting..." << endl;
-			break;
-		}
+		timeout = &userTimeout; 
 
 		bool isTraining = output.compare( "_" ) != 0;
-		cout << "Processing input: " << input << ( isTraining ? " (training)" : "" ) << endl;
+		if ( input.compare( "_" ) == 0 )
+		{
+			cout << "Thinking..." << endl;
+		}
+		else
+		{
+			cout << "Processing input: " << input << ( isTraining ? " (training)" : "" ) << endl;
+		}
 		
 		processInput( input, isTraining );
 
