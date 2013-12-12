@@ -7,6 +7,8 @@
 #ifndef NETWORKTRANSLATOR_HPP
 #define NETWORKTRANSLATOR_HPP
 
+#include <vector>
+
 #include "vector.hpp"
 
 using namespace std;
@@ -20,12 +22,21 @@ public:
 	unsigned getNumberOfInputNeurons() const;
 	unsigned getNumberOfOutputNeurons() const;
 	
+	void addInputIfNotFound(string input);
+	void addOutputIfNotFound(string output);
+	
 	Vector translateInput(string input);
+	string translateInput(Vector input);
 	string translateInput(Vector* input);
+	
 	Vector translateOutput(string output);
+	string translateOutput(Vector output);
 	string translateOutput(Vector* output);
-	Vector findNextOutput(Vector* currentOutput, Vector* input); // For training only.
+	
+	Vector findNearestActualInput(Vector input);
 	Vector findNearestActualInput(Vector* input);
+	
+	Vector findNearestActualOutput(Vector output);
 	Vector findNearestActualOutput(Vector* output);
 
 private:
@@ -37,18 +48,14 @@ private:
 	unsigned findOutputIndex(string output);
 	
 	// Both neuron counts must be greater than or equal to 1!
-	static const unsigned _NUM_IN_NEURONS = 4;
-	static const unsigned _NUM_OUT_NEURONS = 6;
+	static const unsigned _NUM_IN_NEURONS = 10;
+	static const unsigned _NUM_OUT_NEURONS = 25;
 	
-	static const unsigned _NUM_IN_POSSIBLE = 11;
-	static const unsigned _NUM_OUT_POSSIBLE = 6;
+	static const unsigned _NUM_IN_POSSIBLE = 1000;
+	static const unsigned _NUM_OUT_POSSIBLE = 25;
 	
-	static const string _INPUTS[_NUM_IN_POSSIBLE];
-	
-	static const string _OUTPUTS[_NUM_OUT_POSSIBLE];
-	
-	// Entry [output index][input index - 1] is the output index for the next state.
-	static const unsigned _IN_OUT_MAP[_NUM_OUT_POSSIBLE][_NUM_IN_POSSIBLE - 1];
+	vector<string> _inputs;
+	vector<string> _outputs;
 };
 
 #endif

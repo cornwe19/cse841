@@ -8,9 +8,11 @@
 #include <sys/select.h>
 #include <sys/types.h>
 
-DevelopmentalNetwork::DevelopmentalNetwork( unsigned hiddenNeuronCap )
+DevelopmentalNetwork::DevelopmentalNetwork( string startingOutput, unsigned hiddenNeuronCap )
 {
-	Vector normedStartingOutput(_translator.translateOutput("z1"));
+	_translator.addOutputIfNotFound(startingOutput);
+	
+	Vector normedStartingOutput(_translator.translateOutput(startingOutput));
 	normedStartingOutput /= normedStartingOutput.calculateNorm();
 	
 	_outputLayer.currentOutput = new Vector(normedStartingOutput);
@@ -170,32 +172,8 @@ void DevelopmentalNetwork::process()
 		}
 
 		timeout = &userTimeout; 
-
-		bool isTraining = output.compare( "_" ) != 0;
-		if ( input.compare( "_" ) == 0 )
-		{
-			cout << "Thinking..." << endl;
-		}
-		else
-		{
-			cout << "Processing input: " << input << ( isTraining ? " (training)" : "" ) << endl;
-		}
 		
-		processInput( input, isTraining );
-
-		Vector* nearestCurrentOutput = new Vector(
-			_translator.findNearestActualOutput(_outputLayer.currentOutput));
-		Vector* nearestNextOutput = new Vector(
-			_translator.findNearestActualOutput(_outputLayer.nextOutput));
-			
-		cout << "Transition: " << _translator.translateOutput(nearestCurrentOutput);
-		cout << " -> " << _translator.translateOutput(nearestNextOutput);
-		cout << endl << endl;
-		
-		delete nearestCurrentOutput;
-		delete nearestNextOutput;
-		
-		*_outputLayer.currentOutput = *_outputLayer.nextOutput;
+		processUserInput(input, output);
 	}
 }
 
@@ -243,14 +221,78 @@ DevelopmentalNetwork& DevelopmentalNetwork::operator=(const DevelopmentalNetwork
 
 
 
-void DevelopmentalNetwork::processInput(string word, bool isTraining)
+void DevelopmentalNetwork::processUserInput(string input, string output)
 {
-	*_inputLayer = _translator.translateInput(word);
+	bool isTraining = (input != "_" && output != "_");
+	bool isTesting = (input != "_" && output == "_");
+	bool isThinking = (input == "_" && output == "_");
+	bool isGoto = (!isTraining && !isTesting && !isThinking);
 	
-	if (_inputLayer->calculateNorm() > 0)
+	_translator.addInputIfNotFound(input);
+	_translator.addOutputIfNotFound(output);
+	
+	Vector normedInput(_translator.translateInput(input));
+	if (normedInput.calculateNorm() > 0)
 	{
-		*_inputLayer /= _inputLayer->calculateNorm();
+		normedInput /= normedInput.calculateNorm();
+	}
+	
+	Vector normedOutput(_translator.translateOutput(output));
+	normedOutput /= normedOutput.calculateNorm();
+	
+	if ( isTraining )
+	{
+		cout << "Training..." << endl;
+		cout << "Processing input: " << input << endl;
+		cout << "Processing output: " << output << endl;
+	}
+	else if ( isTesting )
+	{
+		cout << "Testing..." << endl;
+		cout << "Processing input: " << input << endl;
+	}
+	else if ( isThinking )
+	{
+		cout << "Thinking..." << endl;
+	}
+	else
+	{
+		cout << "Setting current state..." << endl;
 		
+		*_outputLayer.currentOutput = normedOutput;
+		
+		Vector nearestCurrentOutput(_translator.findNearestActualOutput(
+			_outputLayer.currentOutput));
+		
+		cout << "Current state: " << _translator.translateOutput(nearestCurrentOutput);
+		cout << endl << endl;
+	}
+	
+	if (!isGoto)
+	{
+		processNetworkInput( normedInput, normedOutput, isTraining, isTesting, isThinking );
+
+		Vector nearestCurrentOutput(_translator.findNearestActualOutput(
+			_outputLayer.currentOutput));
+			
+		Vector nearestNextOutput(_translator.findNearestActualOutput(
+			_outputLayer.nextOutput));
+	
+		cout << "Transition: " << _translator.translateOutput(nearestCurrentOutput);
+		cout << " -> " << _translator.translateOutput(nearestNextOutput);
+		cout << endl << endl;
+
+		*_outputLayer.currentOutput = *_outputLayer.nextOutput;
+	}
+}
+
+void DevelopmentalNetwork::processNetworkInput(Vector input, Vector output, bool isTraining, 
+	bool isTesting, bool isThinking)
+{
+	*_inputLayer = input;
+	
+	if (isTraining || isTesting)
+	{
 		unsigned selectedHiddenNeuronIndex = selectHiddenNeuron(isTraining);
 		bool createdNewNeuron = false;
 		
@@ -259,13 +301,9 @@ void DevelopmentalNetwork::processInput(string word, bool isTraining)
 			HiddenNeuron* newNeuron = new HiddenNeuron();
 			newNeuron->currentOutputPart = new Vector(*_outputLayer.currentOutput);
 			newNeuron->inputPart = new Vector(*_inputLayer);
-			
-			newNeuron->nextOutputPart = 
-				new Vector(_translator.findNextOutput(newNeuron->currentOutputPart, 
-				newNeuron->inputPart));
-			*newNeuron->nextOutputPart /= newNeuron->nextOutputPart->calculateNorm();
-			
+			newNeuron->nextOutputPart = new Vector(output);
 			newNeuron->age = 1;
+			newNeuron->frequency = 1;
 		
 			_hiddenLayer.push_back(newNeuron);
 		
@@ -273,14 +311,10 @@ void DevelopmentalNetwork::processInput(string word, bool isTraining)
 			createdNewNeuron = true;
 		}
 		
-		if (isTraining && !createdNewNeuron)
+		if (!createdNewNeuron && isTraining)
 		{
 			double weightNew = 1.0 / _hiddenLayer[selectedHiddenNeuronIndex]->age + 1;
 			double weightOld = 1.0 - weightNew;
-			
-			Vector normedNextOutput(_translator.findNextOutput(_outputLayer.currentOutput, 
-				_inputLayer));
-			normedNextOutput /= normedNextOutput.calculateNorm();
 			
 			*_hiddenLayer[selectedHiddenNeuronIndex]->currentOutputPart = 
 				weightOld * *_hiddenLayer[selectedHiddenNeuronIndex]->currentOutputPart + 
@@ -290,7 +324,7 @@ void DevelopmentalNetwork::processInput(string word, bool isTraining)
 			
 			*_hiddenLayer[selectedHiddenNeuronIndex]->nextOutputPart = 
 				weightOld * *_hiddenLayer[selectedHiddenNeuronIndex]->nextOutputPart + 
-				weightNew * normedNextOutput;
+				weightNew * output;
 			*_hiddenLayer[selectedHiddenNeuronIndex]->nextOutputPart /= 
 				_hiddenLayer[selectedHiddenNeuronIndex]->nextOutputPart->calculateNorm();
 			
@@ -301,6 +335,7 @@ void DevelopmentalNetwork::processInput(string word, bool isTraining)
 				_hiddenLayer[selectedHiddenNeuronIndex]->inputPart->calculateNorm();
 			
 			++_hiddenLayer[selectedHiddenNeuronIndex]->age;
+			++_hiddenLayer[selectedHiddenNeuronIndex]->frequency;
 		}
 		
 		*_outputLayer.nextOutput = *_hiddenLayer[selectedHiddenNeuronIndex]->nextOutputPart;
@@ -324,14 +359,6 @@ void DevelopmentalNetwork::processInput(string word, bool isTraining)
 			}
 		}
 		
-		Vector* nearestInput = new Vector(
-			_translator.findNearestActualInput(_hiddenLayer[selectedHiddenNeuronIndex]->
-			inputPart));
-		
-		cout << "Predicted Word: " << _translator.translateInput(nearestInput) << endl;
-		
-		delete nearestInput;
-		
 		*_outputLayer.nextOutput = *_hiddenLayer[selectedHiddenNeuronIndex]->nextOutputPart;
 	}
 }
@@ -340,9 +367,6 @@ unsigned DevelopmentalNetwork::selectHiddenNeuron(bool isTraining)
 {
 	unsigned selectedHiddenNeuronIndex = 0;
 	
-	Vector normedInput(*_inputLayer);
-	normedInput /= normedInput.calculateNorm();
-	
 	double bestMatchResponse = -1;
 	double currentResponse;
 	
@@ -350,7 +374,7 @@ unsigned DevelopmentalNetwork::selectHiddenNeuron(bool isTraining)
 	{
 		currentResponse = _outputLayer.currentOutput->
 			dot(*_hiddenLayer[currentIndex]->currentOutputPart) + 
-			_hiddenLayer[currentIndex]->inputPart->dot(normedInput);
+			_hiddenLayer[currentIndex]->inputPart->dot(*_inputLayer);
 		
 		if (currentResponse > bestMatchResponse)
 		{

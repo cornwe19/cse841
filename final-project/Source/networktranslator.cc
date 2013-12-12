@@ -6,37 +6,9 @@
 
 #include "networktranslator.hpp"
 
-const string NetworkTranslator::_INPUTS[NetworkTranslator::_NUM_IN_POSSIBLE] = 
-	{
-		"_", 
-		"cat", "full", "hungry", "kitten", "looks", 
-		"meal", "stares", "time", "well", "young"
-	};
-
-const string NetworkTranslator::_OUTPUTS[NetworkTranslator::_NUM_OUT_POSSIBLE] = 
-	{
-		"z1", "z2", "z3", 
-		"z4", "z5", "z6"
-	};
-
-// Entry [output index][input index - 1] is the output index for the next state.
-const unsigned NetworkTranslator::_IN_OUT_MAP[NetworkTranslator::_NUM_OUT_POSSIBLE]
-	[NetworkTranslator::_NUM_IN_POSSIBLE - 1] = 
-	{
-		{0, 0, 5, 2, 0, 4, 0, 0, 0, 1},
-		{2, 0, 5, 2, 0, 4, 0, 0, 1, 1},
-		{0, 0, 5, 2, 3, 4, 3, 0, 2, 1},
-		{0, 0, 5, 2, 0, 4, 0, 0, 3, 1},
-		{0, 0, 5, 2, 0, 4, 0, 5, 4, 1},
-		{0, 0, 5, 2, 0, 4, 0, 0, 5, 1}
-	};
-
-
-
-
-
 NetworkTranslator::NetworkTranslator()
 {
+	_inputs.push_back("_");
 }
 
 NetworkTranslator::~NetworkTranslator()
@@ -55,6 +27,48 @@ unsigned NetworkTranslator::getNumberOfInputNeurons() const
 unsigned NetworkTranslator::getNumberOfOutputNeurons() const
 {
 	return _NUM_OUT_NEURONS;
+}
+
+
+
+
+
+void NetworkTranslator::addInputIfNotFound(string input)
+{
+	bool found = false;
+	
+	for (unsigned i = 0; i < _inputs.size(); ++i)
+	{
+		if (_inputs[i] == input)
+		{
+			found = true;
+			break;
+		}
+	}
+	
+	if (!found)
+	{
+		_inputs.push_back(input);
+	}
+}
+
+void NetworkTranslator::addOutputIfNotFound(string output)
+{
+	bool found = false;
+	
+	for (unsigned i = 0; i < _outputs.size(); ++i)
+	{
+		if (_outputs[i] == output)
+		{
+			found = true;
+			break;
+		}
+	}
+	
+	if (!found)
+	{
+		_outputs.push_back(output);
+	}
 }
 
 
@@ -80,6 +94,35 @@ Vector NetworkTranslator::translateInput(string input)
 	translatedInput.at(currentTranslatedIndex) = inputIndex & 1;
 	
 	return translatedInput;
+}
+
+string NetworkTranslator::translateInput(Vector input)
+{
+	unsigned inputIndex = input.getSize() - 1;
+	unsigned translatedIndex = unsigned(input.at(inputIndex));
+	
+	--inputIndex;
+	unsigned power = 1;
+	
+	while (inputIndex > 0)
+	{
+		translatedIndex += unsigned(input.at(inputIndex)) << power;
+		
+		--inputIndex;
+		++power;
+	}
+	
+	// Need to convert the final bit.
+	translatedIndex += unsigned(input.at(inputIndex)) << power;
+	
+	if (translatedIndex >= _NUM_IN_POSSIBLE)
+	{
+		cerr << "\n\nException: Translating the input vector yields too large of an index.\n";
+		cerr << "Input Vector: " << input << endl;
+		cerr << "Translated Index: " << translatedIndex << endl << endl;
+	}
+	
+	return _inputs[translatedIndex];
 }
 
 string NetworkTranslator::translateInput(Vector* input)
@@ -108,8 +151,12 @@ string NetworkTranslator::translateInput(Vector* input)
 		cerr << "Translated Index: " << translatedIndex << endl << endl;
 	}
 	
-	return _INPUTS[translatedIndex];
+	return _inputs[translatedIndex];
 }
+
+
+
+
 
 Vector NetworkTranslator::translateOutput(string output)
 {
@@ -120,6 +167,27 @@ Vector NetworkTranslator::translateOutput(string output)
 	translatedOutput.at(outputIndex) = 1;
 	
 	return translatedOutput;
+}
+
+string NetworkTranslator::translateOutput(Vector output)
+{
+	unsigned outputIndex;
+	
+	for (outputIndex = 0; outputIndex < _NUM_OUT_POSSIBLE; ++outputIndex)
+	{
+		if (output.at(outputIndex) == 1)
+		{
+			break;
+		}
+	}
+	
+	if (outputIndex >= _NUM_OUT_POSSIBLE || output.calculateNorm() != 1)
+	{
+		cerr << "\n\nException: Translating the output vector failed.\n";
+		cerr << "Output Vector: " << output << endl << endl;
+	}
+	
+	return _outputs[outputIndex];
 }
 
 string NetworkTranslator::translateOutput(Vector* output)
@@ -140,22 +208,32 @@ string NetworkTranslator::translateOutput(Vector* output)
 		cerr << "Output Vector: " << *output << endl << endl;
 	}
 	
-	return _OUTPUTS[outputIndex];
+	return _outputs[outputIndex];
 }
 
-Vector NetworkTranslator::findNextOutput(Vector* currentOutput, Vector* input)
+
+
+
+
+Vector NetworkTranslator::findNearestActualInput(Vector input)
 {
-	Vector* nearestOutput = new Vector(findNearestActualOutput(currentOutput));
-	Vector* nearestInput = new Vector(findNearestActualInput(input));
+	unsigned bestMatchIndex = 0;
+	double bestMatchDistance = -1;
 	
-	unsigned currentOutputIndex = findOutputIndex(translateOutput(nearestOutput));
-	unsigned inputIndex = findInputIndex(translateInput(nearestInput));
+	double currentDistance;
 	
-	delete nearestOutput;
-	delete nearestInput;
+	for (unsigned currentIndex = 0; currentIndex < _NUM_IN_POSSIBLE; ++currentIndex)
+	{
+		currentDistance = input.calculateDistanceTo(translateInput(_inputs[currentIndex]));
+		
+		if (bestMatchDistance < 0 || currentDistance < bestMatchDistance)
+		{
+			bestMatchIndex = currentIndex;
+			bestMatchDistance = currentDistance;
+		}
+	}
 	
-	// Need to use inputIndex - 1 because the _ is a special case and isn't in the map.
-	return translateOutput(_OUTPUTS[_IN_OUT_MAP[currentOutputIndex][inputIndex - 1]]);
+	return translateInput(_inputs[bestMatchIndex]);
 }
 
 Vector NetworkTranslator::findNearestActualInput(Vector* input)
@@ -167,7 +245,7 @@ Vector NetworkTranslator::findNearestActualInput(Vector* input)
 	
 	for (unsigned currentIndex = 0; currentIndex < _NUM_IN_POSSIBLE; ++currentIndex)
 	{
-		currentDistance = input->calculateDistanceTo(translateInput(_INPUTS[currentIndex]));
+		currentDistance = input->calculateDistanceTo(translateInput(_inputs[currentIndex]));
 		
 		if (bestMatchDistance < 0 || currentDistance < bestMatchDistance)
 		{
@@ -176,7 +254,32 @@ Vector NetworkTranslator::findNearestActualInput(Vector* input)
 		}
 	}
 	
-	return translateInput(_INPUTS[bestMatchIndex]);
+	return translateInput(_inputs[bestMatchIndex]);
+}
+
+
+
+
+
+Vector NetworkTranslator::findNearestActualOutput(Vector output)
+{
+	unsigned bestMatchIndex = 0;
+	double bestMatchDistance = -1;
+	
+	double currentDistance;
+	
+	for (unsigned currentIndex = 0; currentIndex < _NUM_OUT_POSSIBLE; ++currentIndex)
+	{
+		currentDistance = output.calculateDistanceTo(translateOutput(_outputs[currentIndex]));
+		
+		if (bestMatchDistance < 0 || currentDistance < bestMatchDistance)
+		{
+			bestMatchIndex = currentIndex;
+			bestMatchDistance = currentDistance;
+		}
+	}
+	
+	return translateOutput(_outputs[bestMatchIndex]);
 }
 
 Vector NetworkTranslator::findNearestActualOutput(Vector* output)
@@ -188,7 +291,7 @@ Vector NetworkTranslator::findNearestActualOutput(Vector* output)
 	
 	for (unsigned currentIndex = 0; currentIndex < _NUM_OUT_POSSIBLE; ++currentIndex)
 	{
-		currentDistance = output->calculateDistanceTo(translateOutput(_OUTPUTS[currentIndex]));
+		currentDistance = output->calculateDistanceTo(translateOutput(_outputs[currentIndex]));
 		
 		if (bestMatchDistance < 0 || currentDistance < bestMatchDistance)
 		{
@@ -197,7 +300,7 @@ Vector NetworkTranslator::findNearestActualOutput(Vector* output)
 		}
 	}
 	
-	return translateOutput(_OUTPUTS[bestMatchIndex]);
+	return translateOutput(_outputs[bestMatchIndex]);
 }
 
 
@@ -227,7 +330,7 @@ unsigned NetworkTranslator::findInputIndex(string input)
 	
 	for (inputIndex = 0; inputIndex < _NUM_IN_POSSIBLE; ++inputIndex)
 	{
-		if (_INPUTS[inputIndex] == input)
+		if (_inputs[inputIndex] == input)
 		{
 			break;
 		}
@@ -248,7 +351,7 @@ unsigned NetworkTranslator::findOutputIndex(string output)
 	
 	for (outputIndex = 0; outputIndex < _NUM_OUT_POSSIBLE; ++outputIndex)
 	{
-		if (_OUTPUTS[outputIndex] == output)
+		if (_outputs[outputIndex] == output)
 		{
 			break;
 		}

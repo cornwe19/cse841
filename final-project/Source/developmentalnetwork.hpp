@@ -8,7 +8,6 @@
 #define DEVELOPMENTALNETWORK_HPP
 
 #include <fstream>
-#include <vector>
 
 #include "networktranslator.hpp"
 
@@ -17,7 +16,7 @@ using namespace std;
 class DevelopmentalNetwork
 {
 public:
-	DevelopmentalNetwork(unsigned hiddenNeuronCap);
+	DevelopmentalNetwork(string startingOutput, unsigned hiddenNeuronCap);
 	~DevelopmentalNetwork();
 	
 	void save(string destinationFileName);
@@ -41,6 +40,7 @@ private:
 		Vector* inputPart;
 		
 		unsigned age;
+		unsigned frequency;
 	};
 	
 	DevelopmentalNetwork();
@@ -48,7 +48,9 @@ private:
 	
 	DevelopmentalNetwork& operator=(const DevelopmentalNetwork& developmentalNetwork);
 	
-	void processInput(string word, bool isTraining);
+	void processUserInput(string input, string output);
+	void processNetworkInput(Vector input, Vector output, bool isTraining, bool isTesting, 
+		bool isThinking);
 	unsigned selectHiddenNeuron(bool isTraining);
 	
 	OutputLayer _outputLayer;

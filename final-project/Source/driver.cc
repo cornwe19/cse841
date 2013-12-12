@@ -13,11 +13,18 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-   // Hardcode neruon cap to the static state table size for now
-   unsigned hiddenNeuronCap = 60;
+	if (argc != 2)
+	{
+		cerr << "\nImproper arguments! Expecting starting state.\n\n";
+		
+		return 1;
+	}
+	
+	// Hard code neuron cap to be sufficiently high.
+	unsigned hiddenNeuronCap = 1000;
    
-   DevelopmentalNetwork developmentalNetwork( hiddenNeuronCap );
-   developmentalNetwork.process();
+	DevelopmentalNetwork developmentalNetwork( argv[1], hiddenNeuronCap );
+	developmentalNetwork.process();
 	
 	return 0;
 }
