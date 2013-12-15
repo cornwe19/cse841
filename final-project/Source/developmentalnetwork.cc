@@ -359,9 +359,9 @@ void DevelopmentalNetwork::processNetworkInput(Vector input, Vector output, bool
 		for (unsigned currentIndex = 0; currentIndex < _hiddenLayer.size(); ++currentIndex)
 		{
 			currentResponse = _outputLayer.currentOutput->
-				dot(*_hiddenLayer[currentIndex]->currentOutputPart);
+				dot(*_hiddenLayer[currentIndex]->currentOutputPart) * _hiddenLayer[currentIndex]->frequency;
 		
-			if (currentResponse > bestMatchResponse)
+			if (currentResponse >= bestMatchResponse)
 			{
 				selectedHiddenNeuronIndex = currentIndex;
 				bestMatchResponse = currentResponse;
