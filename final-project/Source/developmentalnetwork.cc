@@ -151,7 +151,7 @@ void DevelopmentalNetwork::process()
 
 			if ( split < line.size() ) 
 			{
-			   output = line.substr( split, line.size() );
+			   output = line.substr( split + 1, line.size() );
 			}
 			else
 			{
@@ -270,13 +270,22 @@ void DevelopmentalNetwork::processUserInput(string input, string output)
 	
 	if (!isGoto)
 	{
+		//_translator.printInputs();
+		//_translator.printOutputs();
+		
 		processNetworkInput( normedInput, normedOutput, isTraining, isTesting, isThinking );
+		
+		//cerr << "after processNetworkInput\n";
 
 		Vector nearestCurrentOutput(_translator.findNearestActualOutput(
 			_outputLayer.currentOutput));
 			
+		//cerr << "after nearestCurrentOutput\n";
+			
 		Vector nearestNextOutput(_translator.findNearestActualOutput(
 			_outputLayer.nextOutput));
+		
+		//cerr << "after nearestNextOutput\n";
 	
 		cout << "Transition: " << _translator.translateOutput(nearestCurrentOutput);
 		cout << " -> " << _translator.translateOutput(nearestNextOutput);

@@ -21,6 +21,8 @@ public:
 	
 	unsigned getNumberOfInputNeurons() const;
 	unsigned getNumberOfOutputNeurons() const;
+	void printInputs() const;
+	void printOutputs() const;
 	
 	void addInputIfNotFound(string input);
 	void addOutputIfNotFound(string output);

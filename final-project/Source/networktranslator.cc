@@ -29,6 +29,26 @@ unsigned NetworkTranslator::getNumberOfOutputNeurons() const
 	return _NUM_OUT_NEURONS;
 }
 
+void NetworkTranslator::printInputs() const
+{
+	for (unsigned i = 0; i < _inputs.size(); ++i)
+	{
+		cout << _inputs[i] << endl;
+	}
+	
+	cout << endl;
+}
+
+void NetworkTranslator::printOutputs() const
+{
+	for (unsigned i = 0; i < _outputs.size(); ++i)
+	{
+		cout << _outputs[i] << endl;
+	}
+	
+	cout << endl;
+}
+
 
 
 
@@ -115,7 +135,7 @@ string NetworkTranslator::translateInput(Vector input)
 	// Need to convert the final bit.
 	translatedIndex += unsigned(input.at(inputIndex)) << power;
 	
-	if (translatedIndex >= _NUM_IN_POSSIBLE)
+	if (translatedIndex >= _inputs.size())
 	{
 		cerr << "\n\nException: Translating the input vector yields too large of an index.\n";
 		cerr << "Input Vector: " << input << endl;
@@ -144,7 +164,7 @@ string NetworkTranslator::translateInput(Vector* input)
 	// Need to convert the final bit.
 	translatedIndex += unsigned(input->at(inputIndex)) << power;
 	
-	if (translatedIndex >= _NUM_IN_POSSIBLE)
+	if (translatedIndex >= _inputs.size())
 	{
 		cerr << "\n\nException: Translating the input vector yields too large of an index.\n";
 		cerr << "Input Vector: " << *input << endl;
@@ -222,7 +242,7 @@ Vector NetworkTranslator::findNearestActualInput(Vector input)
 	
 	double currentDistance;
 	
-	for (unsigned currentIndex = 0; currentIndex < _NUM_IN_POSSIBLE; ++currentIndex)
+	for (unsigned currentIndex = 0; currentIndex < _inputs.size(); ++currentIndex)
 	{
 		currentDistance = input.calculateDistanceTo(translateInput(_inputs[currentIndex]));
 		
@@ -243,7 +263,7 @@ Vector NetworkTranslator::findNearestActualInput(Vector* input)
 	
 	double currentDistance;
 	
-	for (unsigned currentIndex = 0; currentIndex < _NUM_IN_POSSIBLE; ++currentIndex)
+	for (unsigned currentIndex = 0; currentIndex < _inputs.size(); ++currentIndex)
 	{
 		currentDistance = input->calculateDistanceTo(translateInput(_inputs[currentIndex]));
 		
@@ -268,7 +288,7 @@ Vector NetworkTranslator::findNearestActualOutput(Vector output)
 	
 	double currentDistance;
 	
-	for (unsigned currentIndex = 0; currentIndex < _NUM_OUT_POSSIBLE; ++currentIndex)
+	for (unsigned currentIndex = 0; currentIndex < _outputs.size(); ++currentIndex)
 	{
 		currentDistance = output.calculateDistanceTo(translateOutput(_outputs[currentIndex]));
 		
@@ -289,7 +309,7 @@ Vector NetworkTranslator::findNearestActualOutput(Vector* output)
 	
 	double currentDistance;
 	
-	for (unsigned currentIndex = 0; currentIndex < _NUM_OUT_POSSIBLE; ++currentIndex)
+	for (unsigned currentIndex = 0; currentIndex < _outputs.size(); ++currentIndex)
 	{
 		currentDistance = output->calculateDistanceTo(translateOutput(_outputs[currentIndex]));
 		
@@ -328,7 +348,7 @@ unsigned NetworkTranslator::findInputIndex(string input)
 {
 	unsigned inputIndex;
 	
-	for (inputIndex = 0; inputIndex < _NUM_IN_POSSIBLE; ++inputIndex)
+	for (inputIndex = 0; inputIndex < _inputs.size(); ++inputIndex)
 	{
 		if (_inputs[inputIndex] == input)
 		{
@@ -336,7 +356,7 @@ unsigned NetworkTranslator::findInputIndex(string input)
 		}
 	}
 	
-	if (inputIndex >= _NUM_IN_POSSIBLE)
+	if (inputIndex >= _inputs.size())
 	{
 		cerr << "\n\nException: Failed to find input index.\n";
 		cerr << "Input: " << input << endl << endl;
@@ -349,7 +369,7 @@ unsigned NetworkTranslator::findOutputIndex(string output)
 {
 	unsigned outputIndex;
 	
-	for (outputIndex = 0; outputIndex < _NUM_OUT_POSSIBLE; ++outputIndex)
+	for (outputIndex = 0; outputIndex < _outputs.size(); ++outputIndex)
 	{
 		if (_outputs[outputIndex] == output)
 		{
@@ -357,7 +377,7 @@ unsigned NetworkTranslator::findOutputIndex(string output)
 		}
 	}
 	
-	if (outputIndex >= _NUM_OUT_POSSIBLE)
+	if (outputIndex >= _outputs.size())
 	{
 		cerr << "\n\nException: Failed to find output index.\n";
 		cerr << "Output: " << output << endl << endl;
