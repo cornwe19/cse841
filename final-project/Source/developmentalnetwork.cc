@@ -8,6 +8,9 @@
 #include <sys/select.h>
 #include <sys/types.h>
 
+#define TIMEOUT_S 15
+#define SHOW_INPUT_OUTPUT false
+
 DevelopmentalNetwork::DevelopmentalNetwork( string startingOutput, unsigned hiddenNeuronCap )
 {
 	_translator.addOutputIfNotFound(startingOutput);
@@ -129,7 +132,7 @@ void DevelopmentalNetwork::process()
 	FD_ZERO( &readset );
 
 	timeval  userTimeout;
-	userTimeout.tv_sec = 5; // Give the user 5 seconds to enter some input
+	userTimeout.tv_sec = TIMEOUT_S; // Give the user some time to enter input
 
 	timeval* timeout = NULL;
 	
@@ -243,13 +246,17 @@ void DevelopmentalNetwork::processUserInput(string input, string output)
 	if ( isTraining )
 	{
 		cout << "Training..." << endl;
+#if SHOW_INPUT_OUTPUT
 		cout << "Processing input: " << input << endl;
 		cout << "Processing output: " << output << endl;
+#endif
 	}
 	else if ( isTesting )
 	{
 		cout << "Testing..." << endl;
+#if SHOW_INPUT_OUTPUT
 		cout << "Processing input: " << input << endl;
+#endif
 	}
 	else if ( isThinking )
 	{
